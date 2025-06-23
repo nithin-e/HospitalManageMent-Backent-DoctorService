@@ -10,7 +10,7 @@ export default class StoreAppointmentSlotsServer implements IStoreAppointmentSlo
 
     storeAppointment_Slots = async (appointmentData: any) => {
       try {
-        console.log('Service layer processing:', appointmentData);
+        // console.log('Service layer processing:', appointmentData);
         
         // Validate the request data
         this.validateAppointmentData(appointmentData);
@@ -67,4 +67,35 @@ export default class StoreAppointmentSlotsServer implements IStoreAppointmentSlo
           throw error;
         }
       }
+
+
+      slotReschedule__Appointment = async (rescheduleData: any) => {
+        try {
+            
+            
+            
+            // Pass the data to the repository
+            const response = await this.storeAppointmentSlotsRepository.slot_Reschedule_Appointment(rescheduleData);
+            
+            return response;
+        } catch (error) {
+            console.error('Error in service layer:', error);
+            throw error;
+        }
+    }
+
+    CancelingAppointMent__UserSide =async (calcellData:any)=>{
+      try {
+            
+            
+            
+      
+        const response = await this.storeAppointmentSlotsRepository.Canceling_AppointMent__UserSide(calcellData);
+        
+        return response;
+    } catch (error) {
+        console.error('Error in service layer:', error);
+        throw error;
+    }
+    }
 }

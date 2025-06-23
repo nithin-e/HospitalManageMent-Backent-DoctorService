@@ -33,22 +33,33 @@ export default class fetchingAppontMentSlotesService  implements IfetchAppontMen
       }
     }
 
-
-    Making_Appoint_Ment = async (request: AppointmentRequest) => {
+    Making_Appoint_Ment = async (request: any) => {
       try {
-        // Validate request data
-        if (!request.name || !request.email || !request.date || !request.time || !request.doctor) {
+        console.log('Service layer received request:', request);
+        
+        
+        if (!request.patientName || !request.patientEmail || !request.appointmentDate || 
+            !request.appointmentTime || !request.doctorName) {
           throw new Error('Missing required appointment information');
         }
         
-        // Format date for consistency if needed
-        const formattedDate = new Date(request.date);
-        if (isNaN(formattedDate.getTime())) {
-          throw new Error('Invalid appointment date format');
-        }
+       
+        const appointmentData = {
+          name: request.patientName,
+          email: request.patientEmail, 
+          phone: request.patientPhone,
+          date: request.appointmentDate,
+          time: request.appointmentTime,
+          doctor: request.doctorName,
+          specialty: request.specialty,
+          userEmail: request.userEmail,
+          notes: request.notes || ''
+        };
+        
+        console.log('Mapped appointment data:', appointmentData);
         
         // Pass to repository
-        const response = await this.fetchingAppontMentSlotesRepository.making__Appoint__ment(request);
+        const response = await this.fetchingAppontMentSlotesRepository.making__Appoint__ment(appointmentData);
       
         return response;
       } catch (error) {
@@ -56,6 +67,27 @@ export default class fetchingAppontMentSlotesService  implements IfetchAppontMen
         throw error;
       }
     }
+
+    fecting_UserAppointments = async (email: string) => {
+      try {
+        const response = await this.fetchingAppontMentSlotesRepository.fetching_User__ApointMents(email);
+        return response;
+      } catch (error) {
+        console.error("Error in fetching single user use case:", error);
+        throw error;
+      }
+  }
+
+
+  fecting_UserAllAppointments = async () => {
+    try {
+      const response = await this.fetchingAppontMentSlotesRepository.fetching_All__User__ApointMents();
+      return response;
+    } catch (error) {
+      console.error("Error in fetching all user appointments service:", error);
+      throw error;
+    }
+  };
 
 
 }

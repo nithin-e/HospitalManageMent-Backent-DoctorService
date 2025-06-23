@@ -4,6 +4,8 @@ import * as protoLoader from '@grpc/proto-loader';
 import "dotenv/config";
 import path from 'path';
 import connectDB from './config/mongo';
+import cron from 'node-cron';
+import  {checkAppointments}  from './utility/cron-job';
 
 
 // import controllers
@@ -34,6 +36,16 @@ const FetchingAppontMentSlotesRepo=new fetchingAppontMentSlotesRepo()
 const FetchAppontMentSlotesService=new fetchAppontMentSlotesService(FetchingAppontMentSlotesRepo)
 const FetchAppontMentSlotesControllerr=new fetchAppontMentSlotesControllerr(FetchAppontMentSlotesService)
 
+
+
+cron.schedule('* * * * *', async () => {
+  console.log('........................................................................');
+  
+  const startedAppointments = await checkAppointments();
+  if (startedAppointments.length) {
+    console.log(`Started ${startedAppointments.length} appointment(s).`);
+  }
+});
 
 
 
@@ -105,11 +117,13 @@ grpcServer.addService(DoctorProto.DoctorService.service, {
   StoreAppointmentSlots:StoreAppointmentSlotsControllerr.storeAppointmentSlots,
   fetchingDoctorSlots:StoreAppointmentSlotsControllerr.fetchDoctorSlots,
    fetchingAppontMentSlotes:FetchAppontMentSlotesControllerr.fetchingAppontMentSlotes,
-   StoreAppointMent:FetchAppontMentSlotesControllerr.MakingAppointMent
-
+   StoreAppointMent:FetchAppontMentSlotesControllerr.MakingAppointMent,
+    fectingUserAppointMents:FetchAppontMentSlotesControllerr.fetchingUserApponitMents,
+    fectingAllUserAppointMents:FetchAppontMentSlotesControllerr.fetchingUserAllApponitMents,
+    RescheduleAppointment :StoreAppointmentSlotsControllerr.rescheduleAppointment,
+    CancelUserAppointMent:StoreAppointmentSlotsControllerr.CancelingAppointMentUserSide,
 });
-
-
+//fectingAllUserAppointMents
 
 
 console.log('Services added to gRPC server');

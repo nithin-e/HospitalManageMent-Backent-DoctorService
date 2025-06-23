@@ -12,12 +12,13 @@ import { IStoreAppointmentSlots_Controller } from '../interFace/StoreAppointment
 
       storeAppointmentSlots = async (call: any, callback: any) => {
         try {
-          console.log('Doctor controller request:', call.request);
-          
+         
+          console.log('Doctor slots processed in controller:',call.request );
+
           // Pass the request data to the use case service
           const dbResponse = await this.storeAppointmentSlotsService.storeAppointment_Slots(call.request);
           
-          console.log('Doctor slots processed in controller:', dbResponse);
+          // console.log('Doctor slots processed in controller:', dbResponse);
           
           // Return response to API gateway
           callback(null, dbResponse);
@@ -30,36 +31,17 @@ import { IStoreAppointmentSlots_Controller } from '../interFace/StoreAppointment
           callback(grpcError, null);
         }
       }
-      // storeAppointmentSlots = async (call: any, callback: any) => {
-      //   try {
-      //     console.log('Doctor controller request:', call.request);
-          
-      //     // Pass the request data to the use case service
-      //     const dbResponse = await this.storeAppointmentSlotsService.storeAppointment_Slots(call.request);
-          
-      //     console.log('Doctor slots processed in controller:', dbResponse);
-          
-      //     // Return response to API gateway
-      //     callback(null, dbResponse);
-      //   } catch (error) {
-      //     console.log('Error in doctor controller:', error);
-      //     const grpcError = {
-      //       code: grpc.status.INTERNAL,
-      //       message: (error as Error).message,
-      //     };
-      //     callback(grpcError, null);
-      //   }
-      // }
-
+      
 
       fetchDoctorSlots= async (call: any, callback: any) => {
         try {
-          console.log('doctor controllerrrrrrr request:', call.request);
+          
           
           // Pass the request data to the use case
           const dbResponse = await this.storeAppointmentSlotsService.fetchDoctor__Slots(call.request);
           
-          console.log('doctor created: in note controller',dbResponse);
+          console.log('check dbResponse dbResponse',dbResponse);
+          
           
           // Return a response (assuming you want to return some data)
           callback(null, dbResponse);
@@ -74,5 +56,43 @@ import { IStoreAppointmentSlots_Controller } from '../interFace/StoreAppointment
       }
 
 
+      rescheduleAppointment = async (call: any, callback: any) => {
+        try {
+            
+            
+            const dbResponse = await this.storeAppointmentSlotsService.slotReschedule__Appointment(call.request);
+
+            console.log('check for the final result in CONTROLLER ',dbResponse);
+            
+            callback(null, dbResponse);
+        } catch (error) {
+            console.log('Error in notification controller:', error);
+            const grpcError = {
+                code: grpc.status.INTERNAL,
+                message: (error as Error).message,
+            };
+            callback(grpcError, null);
+        }
+    }
+  
+
+    CancelingAppointMentUserSide =async (call:any , callback:any)=>{
+        try {
+          
+          console.log('check here getting the cancelling details',call.request);
+           const res= await this.storeAppointmentSlotsService.CancelingAppointMent__UserSide(call.request)
+           callback(null, res);
+
+
+        } catch (error) {
+          
+          console.log('Error in notification controller:', error);
+          const grpcError = {
+              code: grpc.status.INTERNAL,
+              message: (error as Error).message,
+          };
+          callback(grpcError, null);
+        }
+    }
 
 }

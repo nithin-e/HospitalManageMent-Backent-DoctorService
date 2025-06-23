@@ -26,6 +26,9 @@ const appointmentSlotSchema = new mongoose.Schema({
   updatedAt: {
     type: Date,
     default: Date.now
+  },
+  patientEmail:{
+    type: String,
   }
 });
 

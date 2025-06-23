@@ -64,4 +64,78 @@ import { IfetchAppontMentSlotesController } from '../interFace/fetchAppontMentSl
     }
 
 
+    
+
+
+    fetchingUserApponitMents = async (call: any, callback: any) => {
+      try {
+        const { email } = call.request;
+        
+      
+        const response = await this.fetchAppontMentSlotesService.fecting_UserAppointments(email);
+        
+        console.log('check the responce in controller check here',response);
+        
+        callback(null, {
+          appointments: response.appointments,
+          success: response.success,
+          message: response.message
+        });
+        
+      } catch (error) {
+        console.log('Error fetching user appointments:', error);
+        const grpcError = {
+          code: grpc.status.INTERNAL,
+          message: (error as Error).message,
+        };
+        callback(grpcError, null);
+      }
+    }
+ 
+
+
+    fetchingUserAllApponitMents = async (call: any, callback: any) => {
+      try {
+        const response = await this.fetchAppontMentSlotesService.fecting_UserAllAppointments();
+        
+
+        console.log('.......mone mone check here.......................',response)
+
+
+        const grpcResponse = {
+          appointments: response.map((appointment: any) => ({
+            id: appointment._id?.toString() || '',
+            patientName: appointment.patientName || '',
+            doctorEmail: appointment.doctorEmail || '',
+            patientPhone: appointment.patientPhone || '',
+            appointmentDate: appointment.appointmentDate || '',
+            appointmentTime: appointment.appointmentTime || '',
+            notes: appointment.notes || '',
+            doctorName: appointment.doctorName || '',
+            specialty: appointment.specialty || '',
+            patientEmail: appointment.patientEmail || '',
+            status: appointment.status || 'scheduled',
+            message:appointment.message,
+            amount:appointment.amount,
+            adminAmount: appointment.adminAmount,
+            doctorAmount:appointment.doctorAmount,
+            paymentStatus:appointment.paymentStatus,
+            payment_method:appointment.payment_method,
+            payment_status:appointment.payment_status
+          }))
+        };
+    
+        callback(null, grpcResponse)
+        
+      } catch (error) {
+        console.log('Error fetching user appointments:', error);
+        const grpcError = {
+          code: grpc.status.INTERNAL,
+          message: (error as Error).message,
+        };
+        callback(grpcError, null);
+      }
+    };
+
+
 }
