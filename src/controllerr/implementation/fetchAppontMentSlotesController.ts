@@ -74,7 +74,7 @@ import { IfetchAppontMentSlotesController } from '../interFace/fetchAppontMentSl
       
         const response = await this.fetchAppontMentSlotesService.fecting_UserAppointments(email);
         
-        console.log('check the responce in controller check here',response);
+      
         
         callback(null, {
           appointments: response.appointments,

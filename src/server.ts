@@ -10,18 +10,30 @@ import  {checkAppointments}  from './utility/cron-job';
 
 // import controllers
 import fetchAppontMentSlotesControllerr from '../src/controllerr/implementation/fetchAppontMentSlotesController'
-import storeAppointmentSlotsControllerr from "../src/controllerr/implementation/StoreAppointmentSlots_Controller";
+import storeAppointmentSlotsControllerr from "../src/controllerr/implementation/StoreAppointmentSlots_Controller"
+import chatHandlingController from '../src/controllerr/implementation/chatHandlingController';
 
 
 
 // import services
 import fetchAppontMentSlotesService from '../src/service/implementations/fetchAppontMentSlotesService'
 import storeAppointmentSlotsService from "../src/service/implementations/StoreAppointmentSlotsService";
+import chatHandlingServices from "../src/service/implementations/chatHandlingServices";
 
 
 //import repo
 import fetchingAppontMentSlotesRepo from "../src/repositoriess/implementation/fetchingAppontMentSlotesRepo";
 import storeAppointmentSlotsRepo from "../src/repositoriess/implementation/StoreAppointmentSlots_Repo";
+import chatHandlingRepo from "../src/repositoriess/implementation/chatHandlingRepo";
+
+
+import axiosInstance from './axiousInstance';
+
+
+// Initialize dependency chain for chat
+const ChatHandlingRepo=new chatHandlingRepo()
+const ChatHandlingServices =new chatHandlingServices(ChatHandlingRepo)
+const ChatHandlingController =new chatHandlingController(ChatHandlingServices)
 
 
 
@@ -39,10 +51,22 @@ const FetchAppontMentSlotesControllerr=new fetchAppontMentSlotesControllerr(Fetc
 
 
 cron.schedule('* * * * *', async () => {
-  console.log('........................................................................');
   
   const startedAppointments = await checkAppointments();
+  
+  console.log("calling...",startedAppointments);
+  
+ 
   if (startedAppointments.length) {
+   console.log('callig again');
+
+    const response = await axiosInstance.post('/api/doctor/appointment-alert', {
+      startedAppointments
+    })
+
+    console.log('...kittndo......',response)
+    
+
     console.log(`Started ${startedAppointments.length} appointment(s).`);
   }
 });
@@ -122,8 +146,9 @@ grpcServer.addService(DoctorProto.DoctorService.service, {
     fectingAllUserAppointMents:FetchAppontMentSlotesControllerr.fetchingUserAllApponitMents,
     RescheduleAppointment :StoreAppointmentSlotsControllerr.rescheduleAppointment,
     CancelUserAppointMent:StoreAppointmentSlotsControllerr.CancelingAppointMentUserSide,
+    StoreMessage:ChatHandlingController.StoreMsngIntoDb,
 });
-//fectingAllUserAppointMents
+//CancelUserAppointMent
 
 
 console.log('Services added to gRPC server');

@@ -64,6 +64,11 @@ const appointmentSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+
+  userRefoundAmount:{
+    type: String,
+    
+  },
   
   paymentStatus: {
     type: String,
@@ -80,9 +85,12 @@ const appointmentSchema = new mongoose.Schema({
     enum: ['pending', 'completed', 'failed'],
     default: 'pending'
   },
-  
-  
- 
+  doctorId:{
+    type: String,
+  },
+  userId:{
+    type: String,
+  }
   
 });
 

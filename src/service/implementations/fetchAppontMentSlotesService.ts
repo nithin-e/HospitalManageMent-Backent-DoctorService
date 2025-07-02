@@ -53,7 +53,10 @@ export default class fetchingAppontMentSlotesService  implements IfetchAppontMen
           doctor: request.doctorName,
           specialty: request.specialty,
           userEmail: request.userEmail,
-          notes: request.notes || ''
+          notes: request.notes || '',
+          userId: request.userId,
+          doctorId:request.doctorId
+
         };
         
         console.log('Mapped appointment data:', appointmentData);

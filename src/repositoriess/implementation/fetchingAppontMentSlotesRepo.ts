@@ -12,7 +12,9 @@ interface AppointmentRequest {
   notes: string;       
   doctor: string;     
   specialty: string;   
-  userEmail: string;   
+  userEmail: string;  
+  userId:string;
+  doctorId:string; 
 }
 
 export default class fetchingAppontMentSloteRepo implements IfetchAppontMentSlotesRepo{
@@ -126,6 +128,8 @@ export default class fetchingAppontMentSloteRepo implements IfetchAppontMentSlot
         doctorName: appointmentData.doctor,
         specialty: appointmentData.specialty,
         patientEmail: appointmentData.userEmail,
+        doctorId:appointmentData.doctorId,
+        userId:appointmentData.userId,
         status: 'scheduled',
         created_at: new Date(),
         amount:'500',
@@ -184,8 +188,11 @@ export default class fetchingAppontMentSloteRepo implements IfetchAppontMentSlot
         specialty: appointment.specialty,
         patientEmail: appointment.patientEmail,
         status: appointment.status,
-        message:appointment.message
+        message:appointment.message,
+        userRefoundAmount :appointment.userRefoundAmount
       }));
+
+      console.log('mone check for here is it getting or not',formattedAppointments)
       
       return {
         appointments: formattedAppointments,

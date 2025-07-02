@@ -465,6 +465,7 @@ interface CancelResponse {
 
   Canceling_AppointMent__UserSide = async (cancelData: CancelData): Promise<CancelResponse> => {
     try {
+      console.log('inside the repposotory while the cancel tyme',cancelData)
       const { time, date, email } = cancelData;
       
       // Validate input data
@@ -485,18 +486,13 @@ interface CancelResponse {
       // Step 1: Find the appointment to get doctor details
       // Use multiple search criteria for better matching
       const appointment = await AppointmentModel.findOne({
-        doctorName: email, // This matches: 'Dr. sahl kurian'
-        appointmentDate: formattedDate, // Now: '2025-06-15'
-        appointmentTime: time, // This matches: '4:30 PM'
-        status: 'scheduled' // Only find scheduled appointments
+        doctorEmail: email, 
+        appointmentDate: formattedDate, 
+        appointmentTime: time, 
+         status: 'scheduled' 
       });
   
-      console.log('Query used:', {
-        doctorName: email,
-        appointmentDate: formattedDate,
-        appointmentTime: time,
-        status: 'scheduled'
-      });
+      
   
       if (!appointment) {
         console.log('Appointment not found with query parameters');
@@ -513,17 +509,19 @@ interface CancelResponse {
         };
       }
   
-      console.log('Found appointment:', appointment);
+      
   
       // Step 2: Update appointment status to cancelled (soft delete approach)
-      const deletedAppointment = await AppointmentModel.findByIdAndDelete(appointment._id);
-  
-      if (!deletedAppointment) {
-        return {
-          success: false,
-          message: 'Failed to cancel appointment'
-        };
-      }
+      const updatedAppointment = await AppointmentModel.findByIdAndUpdate(
+        appointment._id,
+        { 
+          status: 'cancelled',
+          updated_at: new Date(),
+          adminAmount: "0", 
+          userRefoundAmount: '150' 
+        },
+        { new: true } 
+      );
   
       // Step 3: Find and update the corresponding appointment slot to make it available
       const slotUpdate = await AppointmentSlot.findOneAndUpdate(
