@@ -1,16 +1,20 @@
 import { IStoreAppointmentSlotsService } from '../interFace/StoreAppointmentSlotsInterFace';
-import StoreAppointmentSlots_Repo from '../../repositoriess/implementation/StoreAppointmentSlots_Repo'
+import StoreAppointmentSlots_Repo, { CancelData, CancelResponse, FetchPrescriptionRequest, FetchPrescriptionResponse, PrescriptionData, PrescriptionResponse } from '../../repositoriess/implementation/StoreAppointmentSlots_Repo'
+import { AppointmentSlotsData, Cancelres, DbResponse, FetchDoctorSlotsRequest, FetchDoctorSlotsResponse, RescheduleAppointmentRequest, RescheduleAppointmentResponse } from '../../doctorInterFace/IdoctorType';
+import { IStoreAppointmentSlots_Repo } from '../../repositoriess/interFace/StoreAppointmentSlots_RepoInterFace';
+import { appointmentaData } from '../../controllerr/implementation/StoreAppointmentSlots_Controller';
 
 
 export default class StoreAppointmentSlotsServer implements IStoreAppointmentSlotsService{
-    private storeAppointmentSlotsRepository:StoreAppointmentSlots_Repo;
-    constructor(storeAppointmentSlots_Repo:StoreAppointmentSlots_Repo) {
+    private storeAppointmentSlotsRepository:IStoreAppointmentSlots_Repo;
+
+    constructor(storeAppointmentSlots_Repo:IStoreAppointmentSlots_Repo) {
         this.storeAppointmentSlotsRepository=storeAppointmentSlots_Repo
     }
 
-    storeAppointment_Slots = async (appointmentData: any) => {
+    storeAppointment_Slots = async (appointmentData:AppointmentSlotsData):Promise<DbResponse> => {
       try {
-        // console.log('Service layer processing:', appointmentData);
+         console.log('Service layer processing:', appointmentData);
         
         // Validate the request data
         this.validateAppointmentData(appointmentData);
@@ -26,7 +30,7 @@ export default class StoreAppointmentSlotsServer implements IStoreAppointmentSlo
     }
     
     // Validation method
-    private validateAppointmentData = (appointmentData: any) => {
+    private validateAppointmentData = (appointmentData: AppointmentSlotsData) => {
       const { doctor_email, action } = appointmentData;
       
       if (!doctor_email) {
@@ -56,46 +60,89 @@ export default class StoreAppointmentSlotsServer implements IStoreAppointmentSlo
 
 
 
-      fetchDoctor__Slots = async (email: any) => {
-        try {
-          // Pass the data to the repository
-          const response = await this.storeAppointmentSlotsRepository.fetch_Doctor__Slots(email);
-        
-          return response;
-        } catch (error) {
-          console.error('Error in use case:', error);
-          throw error;
-        }
-      }
-
-
-      slotReschedule__Appointment = async (rescheduleData: any) => {
-        try {
-            
-            
-            
-            // Pass the data to the repository
-            const response = await this.storeAppointmentSlotsRepository.slot_Reschedule_Appointment(rescheduleData);
-            
-            return response;
-        } catch (error) {
-            console.error('Error in service layer:', error);
-            throw error;
-        }
-    }
-
-    CancelingAppointMent__UserSide =async (calcellData:any)=>{
+   
+   fetchDoctor__Slots = async (email:string): Promise<FetchDoctorSlotsResponse>=> {
       try {
-            
-            
-            
-      
-        const response = await this.storeAppointmentSlotsRepository.Canceling_AppointMent__UserSide(calcellData);
-        
+          return await this.storeAppointmentSlotsRepository.fetch_Doctor__Slots(email);
+      } catch (error) {
+          console.error('Error in appointment slot service:', error);
+          throw error;
+      }
+  }
+
+
+
+
+  slotReschedule__Appointment = async (
+    rescheduleData: RescheduleAppointmentRequest
+  ): Promise<RescheduleAppointmentResponse> => {
+    try {
+      // Pass the data to the repository
+      const response = await this.storeAppointmentSlotsRepository.slot_Reschedule_Appointment(rescheduleData);
+      return response;
+    } catch (error) {
+      console.error('Error in service layer:', error);
+      throw error;
+    }
+  }
+
+
+
+   CancelingAppointMent__UserSide = async (cancelData: CancelData): Promise<CancelResponse> => {
+    try {
+        const response = await this.storeAppointmentSlotsRepository.Canceling_AppointMent__UserSide(cancelData);
         return response;
     } catch (error) {
         console.error('Error in service layer:', error);
-        throw error;
+        return {
+            success: false,
+            message: 'Failed to cancel appointment in service layer',
+            error: error instanceof Error ? error.message : 'Unknown error'
+        };
     }
-    }
+};
+
+
+    
+
+
+Creating_Prescription = async (PrescriptionData: PrescriptionData): Promise<PrescriptionResponse> => {
+  try {
+      const response = await this.storeAppointmentSlotsRepository.Creating__Prescription(PrescriptionData);
+      return response;
+  } catch (error) {
+      console.error('Error in service layer:', error);
+      throw error;
+  }
+}
+
+
+fetching__Prescription = async (
+  request: FetchPrescriptionRequest
+): Promise<FetchPrescriptionResponse> => {
+  try {
+    // You could add additional business logic here if needed
+    return await this.storeAppointmentSlotsRepository.fetching_Prescription(request);
+  } catch (error) {
+    console.error('Error in service layer:', error);
+    throw error;
+  }
+}
+
+
+doctorCancelling_UserAppointment =async (request: appointmentaData):Promise<Cancelres> =>{
+   try{
+
+    const res=  await this.storeAppointmentSlotsRepository.doctorCancelling_User_Appointment(request)
+    return res
+
+   }catch (err){
+    console.log(err);
+        return {
+            success: false
+        };
+   }
+
+}
+
 }

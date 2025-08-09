@@ -1,101 +1,67 @@
+import { Schema, model, Document, Types } from "mongoose";
 
+export interface IMessage extends Document {
+  senderId: Types.ObjectId;
+  receiverId: Types.ObjectId;
+  appointmentId: Types.ObjectId;
+  messageType: "text" | "image" | "file";
+  content: string;
+  senderType: "user" | "doctor" | "admin";
+  fileUrl?: string;
+  timestamp: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+  chatId?:Types.ObjectId
+}
 
-import mongoose from 'mongoose';
+const messageSchema = new Schema<IMessage>(
+  {
+    senderId: {
+      type: Schema.Types.ObjectId,
+      required: true,
+      index: true,
+    },
+    receiverId: {
+      type: Schema.Types.ObjectId,
+      required: true,
+      index: true,
+    },
+  
+    chatId:{
+      type: Schema.Types.ObjectId,
+      required: true,
+      index: true,
+    },
+    appointmentId: {
+      type: Schema.Types.ObjectId,
+      required: true,
+      index: true,
+    },
+    messageType: {
+      type: String,
+      enum: ["text", "image", "file"],
+      required: true,
+    },
+    content: {
+      type: String,
+      
+    },
+    senderType: {
+      type: String,
+      enum: ["user", "doctor", "admin"],
+      required: true,
+    },
+    fileUrl: {
+      type: String,
+      default: "",
+    },
+    timestamp: {
+      type: String,
+      required: true,
+    },
+  },
+  { timestamps: true }
+);
 
-
-const messageSchema = new mongoose.Schema({
-  
-  // Reference to conversation
-  conversationId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Conversation',
-    required: true
-  },
-  
-  // Sender information
-  senderId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  
-  senderType: {
-    type: String,
-    enum: ['user', 'doctor'],
-    required: true
-  },
-  
-  // Message content
-  content: {
-    type: String,
-    required: true
-  },
-  
-  messageType: {
-    type: String,
-    enum: ['text', 'image', 'file', 'prescription', 'audio', 'system'],
-    default: 'text'
-  },
-  
-  // File/Media information (if applicable)
-  fileInfo: {
-    fileName: String,
-    fileSize: Number,
-    fileType: String,
-    fileUrl: String
-  },
-  
-  // Message status
-  status: {
-    type: String,
-    enum: ['sent', 'delivered', 'read'],
-    default: 'sent'
-  },
-  
-  // Read receipts
-  readBy: [{
-    userId: mongoose.Schema.Types.ObjectId,
-    readAt: Date
-  }],
-  
-  // Reply/Thread information
-  replyTo: {
-    messageId: mongoose.Schema.Types.ObjectId,
-    content: String // snippet of original message
-  },
-  
-  // Message reactions (optional)
-  reactions: [{
-    userId: mongoose.Schema.Types.ObjectId,
-    reaction: String, // emoji or reaction type
-    reactedAt: Date
-  }],
-  
-  // System message data (for automated messages)
-  systemData: {
-    type: String, // 'appointment_reminder', 'prescription_sent', etc.
-    data: mongoose.Schema.Types.Mixed
-  },
-  
-  // Soft delete flag
-  isDeleted: {
-    type: Boolean,
-    default: false
-  },
-  
-  deletedAt: Date,
-  
-}, {
-  timestamps: true // createdAt, updatedAt
-});
-
-// INDEXES FOR BETTER PERFORMANCE
-messageSchema.index({ conversationId: 1, createdAt: 1 });
-messageSchema.index({ senderId: 1 });
-messageSchema.index({ createdAt: -1 });
-messageSchema.index({ conversationId: 1, status: 1 });
-
-// MONGOOSE MODEL
-const Message = mongoose.model('Message', messageSchema);
-
+const Message = model<IMessage>("Message", messageSchema);
 export default Message;

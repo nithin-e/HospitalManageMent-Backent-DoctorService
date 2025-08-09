@@ -90,6 +90,10 @@ const appointmentSchema = new mongoose.Schema({
   },
   userId:{
     type: String,
+  },
+  Prescription:{
+    type:String,
+    default:'not done'
   }
   
 });

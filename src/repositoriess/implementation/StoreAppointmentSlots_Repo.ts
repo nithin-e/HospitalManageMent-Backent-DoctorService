@@ -1,8 +1,14 @@
 import AppointmentSlot from "../../entities/storeAppointmentSlot_schema";
 import AppointmentModel from '../../entities/AppointmentModel'
 import { IStoreAppointmentSlots_Repo } from "../interFace/StoreAppointmentSlots_RepoInterFace";
+import Prescription from "../../entities/PrescriptionModel";
+import { AppointmentSlotDocument, AppointmentSlotsData, Cancelres, DbResponse, FetchDoctorSlotsResponse, RescheduleAppointmentRequest, RescheduleAppointmentResponse, Slot, TimeSlot } from "../../doctorInterFace/IdoctorType";
+import { generateRecurringDates } from "../../utility/generateRecurringDates";
+import { replicateTimeSlotsForDates } from "../../utility/replicateTimeSlotsForDates";
+import mongoose from "mongoose";
+import { appointmentaData } from "../../controllerr/implementation/StoreAppointmentSlots_Controller";
 
-const convertTo12HourFormat = (time24: string): string => {
+const convertTo12HourFormat = (time24: any): string => {
   try {
     const [hours, minutes] = time24.split(':');
     const hour = parseInt(hours, 10);
@@ -37,22 +43,61 @@ function convertToDbDateFormat(dateString: string): string {
   }
 }
 
-interface CancelData {
+export interface CancelData {
   time: string;
   date: string;
   email: string;
 }
 
-interface CancelResponse {
+export interface CancelResponse {
   success: boolean;
   message: string;
   error?: string;
 }
 
+export interface PrescriptionData {
+  doctorId:string;
+  patientId:string;
+  appointmentId:string;
+  prescriptionDetails:string;
+  date:string;
+  time:string;
+}
+
+export interface PrescriptionResponse{
+  success: boolean;
+}
+
+
+
+
+export interface FetchPrescriptionRequest {
+  doctorId: string;
+  userIdd: string;
+  appointmentId: string;
+  date: string;
+  time: string;
+}
+
+export interface FetchPrescriptionResponse {
+  prescriptionDetails: string;
+  date: string;
+  time: string;
+  patientEmail: string | null;  
+  doctorEmail: string | null;  
+}
+
+
+
+
+
  export default class FetchNotificationRepo implements IStoreAppointmentSlots_Repo {
     
-  store__Appointment_Slots = async (appointmentData: any) => {
+  store__Appointment_Slots = async (appointmentData: AppointmentSlotsData):Promise<DbResponse> => {
     try {
+
+      console.log('Repository layer processing appointment data:',appointmentData);
+      
       const { action } = appointmentData;
       
       if (action === 'update') {
@@ -64,58 +109,103 @@ interface CancelResponse {
       console.error('Error in appointment slots repository:', error);
       throw error;
     }
+
   }
   
   
 
 
-   createAppointmentSlots = async (appointmentData: any) => {
+   createAppointmentSlots = async (appointmentData: AppointmentSlotsData) => {
     try {
-      const { doctor_email, date_range, selected_dates, time_slots } = appointmentData;
+      const { 
+        doctor_email, 
+        date_range, 
+        selected_dates, 
+        time_slots,
+        create_recurring = false, 
+        recurring_months = 6     
+      } = appointmentData;
       
-      console.log('Creating appointment slots for doctor:', doctor_email);
-      
-      // Array to hold all appointment slots to be created
-      const appointmentSlots = [];
-      
-      // Process each time slot
-      for (const timeSlot of time_slots) {
-        const { date, slots } = timeSlot;
+  
+
+      console.log('plz check the appoinment data inside the repository layer;',appointmentData)
+
+      let allTimeSlots = [...time_slots];
+      let allSelectedDates = [...selected_dates];
+
+      console.log('check this allTimeSlots',allTimeSlots)
+      console.log('check this allSelectedDates',allSelectedDates);
+
+
+      if (date_range === 'oneWeek') {
+        console.log(`🔄 Creating recurring slots for the next ${recurring_months} months`);
         
-        // For each time in the slots array, create an appointment slot
-        for (const time of slots) {
-          // Convert time from 24-hour format to 12-hour format
-          const convertedTime = convertTo12HourFormat(time);
-          
-          appointmentSlots.push({
-            doctorEmail: doctor_email,
-            date: date,
-            time: convertedTime, // Store the converted time
-            originalTime: time, // Optionally keep original 24-hour format for reference
-            isBooked: false,
-            createdAt: new Date(),
-            updatedAt: new Date()
-          });
-        }
+        
+        const recurringDates = generateRecurringDates(selected_dates, recurring_months);
+        console.log(`📅 Generated ${recurringDates.length} recurring dates`);
+        
+        
+        const recurringTimeSlots = replicateTimeSlotsForDates(time_slots, recurringDates);
+       
+        
+       
+        allTimeSlots = [...time_slots, ...recurringTimeSlots];
+        allSelectedDates = [...selected_dates, ...recurringDates];
+        
+        console.log(`📊 Total time slot groups: ${allTimeSlots.length}`);
+        console.log(`📊 Total dates covered: ${allSelectedDates.length}`);
       }
+      
+
+
+      const appointmentSlots = [];
+    
+    
+    for (const timeSlot of allTimeSlots) {
+      const { date, slots } = timeSlot;
+    
+      for (const time of slots) {
+        const convertedTime = convertTo12HourFormat(time);
+        
+        appointmentSlots.push({
+          doctorEmail: doctor_email,
+          date: date,
+          time: convertedTime, 
+          originalTime: time, 
+          isBooked: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          
+          isRecurring: create_recurring && !selected_dates.includes(date)
+        });
+      }
+    }
+
+    console.log(`💾 Attempting to insert ${appointmentSlots.length} appointment slots`);
+      
+      
+      
+      
+    
+      
   
       let insertedCount = 0;
       
       try {
-        // Try to insert all documents with ordered: false to continue after errors
+        
         const result = await AppointmentSlot.insertMany(appointmentSlots, { ordered: false });
         insertedCount = result.length;
-        console.log('Successfully inserted appointment slots:', insertedCount);
+        console.log('✅ Successfully inserted appointment slots:', insertedCount);
         
       } catch (err: any) {
-        // Handle the case where some documents might already exist
+    
         if (err.code === 11000) {
           console.log('Some appointment slots already exist, skipping duplicates');
           if (err.result && err.result.insertedCount !== undefined) {
             insertedCount = err.result.insertedCount;
             console.log(`Inserted ${insertedCount} out of ${appointmentSlots.length} slots`);
           } else {
-            // Manual count of successfully inserted documents
+  
             const existingSlots = await AppointmentSlot.find({
               doctorEmail: doctor_email,
               date: { $in: selected_dates }
@@ -173,43 +263,7 @@ interface CancelResponse {
       
 
       
-     
-      // if (remaining_slots && remaining_slots.length > 0) {
-      //   console.log('Updating remaining slots:', remaining_slots.length);
-        
-      //   for (const slot of remaining_slots) {
-      //     const { id, date, time } = slot;
-          
-      //     // Update the slot with new date/time
-      //     const updateResult = await AppointmentSlot.updateOne(
-      //       { 
-      //         _id: id, 
-      //         doctorEmail: doctor_email,
-      //         isBooked: false 
-      //       },
-      //       { 
-      //         $set: { 
-      //           date: date,
-      //           time: time,
-      //           updatedAt: new Date()
-      //         } 
-      //       }
-      //     );
-          
-      //     if (updateResult.modifiedCount > 0) {
-      //       updatedCount++;
-      //       datesAffected.add(date);
-      //       console.log(`Updated slot ${id} to ${date} ${time}`);
-      //     } else {
-      //       console.warn(`Failed to update slot ${id} (may be booked or not found)`);
-      //     }
-      //   }
-        
-      //   console.log(`Updated ${updatedCount} appointment slots`);
-      // }
-      
 
-      
 
       if (new_time_slots && new_time_slots.length > 0) {
         console.log('Creating new slots:', new_time_slots.length);
@@ -229,9 +283,6 @@ interface CancelResponse {
         }));
         
         try {
-
-          console.log('<<<<<>>>>>>>>>newSlots<<<<<>>>>><>',newSlots);
-          
 
 
           // Insert multiple documents at once
@@ -284,81 +335,64 @@ interface CancelResponse {
 
 
 
-      fetch_Doctor__Slots = async (email: any) => {
-        try {
-         
-      
-          const doctorSlots = await AppointmentSlot.find({ doctorEmail: email.email });
+  async fetch_Doctor__Slots(email:string): Promise<FetchDoctorSlotsResponse> {
+    try {
+        const doctorSlots: AppointmentSlotDocument[] = await AppointmentSlot.find({ 
+            doctorEmail: email 
+        });
 
-          
-      
-       
-      
-          if (!doctorSlots || doctorSlots.length === 0) {
+        if (!doctorSlots || doctorSlots.length === 0) {
+
+          console.log('Zero slots found for doctor:',email)
             return {
-              success: false,
-              message: 'No appointment slots found for this doctor',
-              slots_created: 0,
-              dates: [],
-              slots: []
+                success: false,
+                message: 'No appointment slots found for this doctor',
+                slots_created: 0,
+                dates: [],
+                slots: []
             };
-          }
-      
-          // Extract unique dates from the slots
-          const uniqueDates = [...new Set(doctorSlots.map(slot => slot.date))];
-          console.log('doctorSlots check for is it getting or not',doctorSlots);
+        }
 
-          // Format slots with relevant information
-          const formattedSlots = doctorSlots.map(slot => ({
-            
-            
-            id: slot._id,
+        const uniqueDates = [...new Set(doctorSlots.map(slot => slot.date))];
+        
+        const formattedSlots: Slot[] = doctorSlots.map(slot => ({
+            id: slot._id.toString(),
             date: slot.date,
             time: slot.time,
             is_booked: slot.isBooked,
             createdAt: slot.createdAt,
             updatedAt: slot.updatedAt,
-            patientEmail:slot.patientEmail
-          }));
-      
-          
-         
-      
-          return {
+            ...(slot.patientEmail && { patientEmail: slot.patientEmail })
+        }));
+
+
+        console.log('the doctoe have something plz check')
+
+        return {
             success: true,
             message: 'Doctor appointment slots retrieved successfully',
             slots_created: doctorSlots.length,
             dates: uniqueDates,
             slots: formattedSlots,
-          };
-        } catch (error) {
-          console.error('Error fetching doctor slots:', error);
-          throw error;
-        }
-      }
+        };
+    } catch (error) {
+        console.error('Error fetching doctor slots:', error);
+        throw error;
+    }
+}
 
   // Repository layer: Processing reschedule data
-  slot_Reschedule_Appointment = async (rescheduleData: any) => {
+   slot_Reschedule_Appointment = async (
+    rescheduleData: RescheduleAppointmentRequest
+  ): Promise<RescheduleAppointmentResponse> => {
     try {
       console.log('Processing reschedule data:', rescheduleData);
       
       // Extract data
-      const {
-        patientEmail,
-        doctorEmail,
-        originalSlot,
-        newSlot,
-        action
-      } = rescheduleData;
+      const { patientEmail, doctorEmail, originalSlot, newSlot, action } = rescheduleData;
       
-      console.log('Extracted data:');
-      console.log('Patient Email:', patientEmail);
-      console.log('Doctor Email:', doctorEmail);
-      console.log('Original Slot:', originalSlot);
-      console.log('New Slot:', newSlot);
-      console.log('Action:', action);
-      
-      // Step 1: Find and delete the original slot from slots collection
+     
+     
       console.log('Step 1: Deleting original slot...');
       const deleteSlotResult = await AppointmentSlot.findByIdAndDelete(originalSlot.id);
       
@@ -367,12 +401,12 @@ interface CancelResponse {
       }
       console.log('Original slot deleted successfully:', deleteSlotResult);
       
-      // Step 2: Find user appointment using patient email and original slot time
+  
       console.log('Step 2: Finding user appointment...');
       const userAppointment = await AppointmentModel.findOne({
         patientEmail: patientEmail,
-        appointmentTime: originalSlot.time, // Match with original slot time
-        appointmentDate: originalSlot.date // Also match date for accuracy
+        appointmentTime: originalSlot.time,
+        appointmentDate: originalSlot.date
       });
       
       if (!userAppointment) {
@@ -386,13 +420,13 @@ interface CancelResponse {
         userAppointment._id,
         {
           $set: {
-            appointmentTime: newSlot.time24, // Update to new slot time
+            appointmentTime: newSlot.time24,
             message: `Your appointment has been rescheduled from ${originalSlot.time} to ${newSlot.time12}`,
             updated_at: new Date()
           }
         },
         { 
-          new: true, // Return updated document
+          new: true,
           runValidators: true 
         }
       );
@@ -403,17 +437,15 @@ interface CancelResponse {
       
       console.log('Appointment updated successfully:', updateResult);
       
-     
-      // First check if a slot exists for this time
+      // Step 4: Create/update the new slot
       let newSlotResult;
       const existingSlot = await AppointmentSlot.findOne({
         doctorEmail: doctorEmail,
-        date: originalSlot.date, // Same date
-        time: newSlot.time24 // New time
+        date: originalSlot.date,
+        time: newSlot.time24
       });
       
       if (existingSlot) {
-        // Update existing slot to mark as booked
         newSlotResult = await AppointmentSlot.findByIdAndUpdate(
           existingSlot._id,
           {
@@ -426,7 +458,6 @@ interface CancelResponse {
           { new: true }
         );
       } else {
-        // Create a new slot if it doesn't exist
         newSlotResult = await AppointmentSlot.create({
           doctorEmail: doctorEmail,
           date: originalSlot.date,
@@ -444,9 +475,9 @@ interface CancelResponse {
         success: true,
         message: 'Appointment rescheduled successfully',
         data: {
-          updatedAppointment: updateResult,
-           originalSlotDeleted: deleteSlotResult,
-          newSlot: newSlotResult,
+          updatedAppointment: updateResult as mongoose.Document,
+          originalSlotDeleted: deleteSlotResult as mongoose.Document,
+          newSlot: newSlotResult as mongoose.Document,
           newSlotTime: newSlot.time12
         }
       };
@@ -465,10 +496,9 @@ interface CancelResponse {
 
   Canceling_AppointMent__UserSide = async (cancelData: CancelData): Promise<CancelResponse> => {
     try {
-      console.log('inside the repposotory while the cancel tyme',cancelData)
       const { time, date, email } = cancelData;
       
-      // Validate input data
+    
       if (!time || !date || !email) {
         return {
           success: false,
@@ -476,15 +506,13 @@ interface CancelResponse {
         };
       }
   
-      console.log('ide okkke indo', time, date, email);
       
-      // Convert date format from "June 15, 2025" to "2025-06-15"
+    
       const formattedDate = convertToDbDateFormat(date);
       
       console.log('Formatted date for query:', formattedDate);
       
-      // Step 1: Find the appointment to get doctor details
-      // Use multiple search criteria for better matching
+      
       const appointment = await AppointmentModel.findOne({
         doctorEmail: email, 
         appointmentDate: formattedDate, 
@@ -497,7 +525,7 @@ interface CancelResponse {
       if (!appointment) {
         console.log('Appointment not found with query parameters');
         
-        // Debug: Let's see what appointments exist for this doctor
+   
         const debugAppointments = await AppointmentModel.find({
           doctorName: email
         });
@@ -511,23 +539,23 @@ interface CancelResponse {
   
       
   
-      // Step 2: Update appointment status to cancelled (soft delete approach)
       const updatedAppointment = await AppointmentModel.findByIdAndUpdate(
         appointment._id,
         { 
           status: 'cancelled',
           updated_at: new Date(),
-          adminAmount: "0", 
-          userRefoundAmount: '150' 
+          adminAmount: "100", 
+          userRefoundAmount: '150',
+          doctorAmount:'250' 
         },
         { new: true } 
       );
   
-      // Step 3: Find and update the corresponding appointment slot to make it available
+     
       const slotUpdate = await AppointmentSlot.findOneAndUpdate(
         {
           doctorEmail: appointment.doctorEmail,
-          date: formattedDate, // Use formatted date here too
+          date: formattedDate, 
           time: time,
           isBooked: true
         },
@@ -540,7 +568,7 @@ interface CancelResponse {
       );
   
       if (!slotUpdate) {
-        // Log warning but don't fail the operation
+      
         console.warn(`Appointment slot not found for doctor: ${appointment.doctorEmail}, date: ${formattedDate}, time: ${time}`);
         
         return {
@@ -563,6 +591,139 @@ interface CancelResponse {
       };
     }
   };
+
+
+
+  Creating__Prescription = async (prescriptionData: PrescriptionData): Promise<PrescriptionResponse> => {
+    try {
+      console.log('This is repository layer so check the Prescription data', prescriptionData);
+  
+      const newPrescription = new Prescription({
+        doctorId: prescriptionData.doctorId,
+        patientId: prescriptionData.patientId,
+        appointmentId: prescriptionData.appointmentId,
+        prescriptionDetails: prescriptionData.prescriptionDetails,
+        time: prescriptionData.time,
+        date: prescriptionData.date || new Date()
+      });
+  
+      await newPrescription.save();
+
+      await AppointmentModel.findByIdAndUpdate(
+        prescriptionData.appointmentId,
+        { Prescription: 'done' },
+        { new: true }
+      );
+      
+      return {
+        success: true,
+      };
+  
+    } catch (error) {
+      console.error('Error saving prescription:', error);
+      throw error; 
+    }
+};
+  
+
+
+fetching_Prescription = async (prescriptionData: FetchPrescriptionRequest): Promise<FetchPrescriptionResponse> => {
+  try {
+    console.log('check da kuttaa it is getting', prescriptionData);
+    
+    const prescription = await Prescription.findOne({
+      appointmentId: prescriptionData.appointmentId
+    });
+
+    if (!prescription) {
+      throw new Error('Prescription not found');
+    }
+
+    const appointment = await AppointmentModel.findById(prescriptionData.appointmentId);
+
+    if (!appointment) {
+      throw new Error('Appointment not found');
+    }
+
+    const response: FetchPrescriptionResponse = {
+      prescriptionDetails: prescription.prescriptionDetails,
+      date: prescription.date.toISOString(), 
+      time: prescription.time,
+      patientEmail: appointment.patientEmail ?? null, 
+      doctorEmail: appointment.doctorEmail ?? null
+    };
+
+    console.log('Fetched prescription response:', response);
+    return response;
+    
+  } catch (error) {
+    console.error('Error fetching prescription:', error);
+    throw error;
+  }
+}
+
+
+
+doctorCancelling_User_Appointment = async (appointmentData: appointmentaData): Promise<Cancelres> => {
+    try {
+        // implement the logic here
+        const appointment = await AppointmentModel.findOne({
+            patientEmail: appointmentData.patientEmail, 
+            appointmentDate: appointmentData.date, 
+            appointmentTime: appointmentData.time, 
+            status: 'scheduled' 
+        });
+
+
+
+           if (!appointment) {
+            return {
+                success: false,
+            };
+        }
+
+
+        const updatedAppointment = await AppointmentModel.findByIdAndUpdate(
+            appointment._id,
+            { 
+                status: 'cancelled',
+                updated_at: new Date(),
+                adminAmount: "100", 
+                userRefoundAmount: '150',
+                doctorAmount: '250' 
+            },
+            { new: true } 
+        );
+
+
+        const slotUpdate = await AppointmentSlot.findOneAndUpdate(
+        {
+          doctorEmail: appointment.doctorEmail,
+          date: appointmentData.date, 
+          time: appointmentData.time,
+          isBooked: true
+        },
+        {
+          isBooked: false,
+          patientEmail: '', 
+          updatedAt: new Date()
+        },
+        { new: true }
+      );
+
+
+
+        return {
+            success: true,
+        };
+    } catch (error) {
+        console.log(error);
+        return {
+            success: false
+        };
+    }
+}
+
 
       }
 

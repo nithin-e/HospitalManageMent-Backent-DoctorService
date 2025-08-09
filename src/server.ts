@@ -53,21 +53,12 @@ const FetchAppontMentSlotesControllerr=new fetchAppontMentSlotesControllerr(Fetc
 cron.schedule('* * * * *', async () => {
   
   const startedAppointments = await checkAppointments();
-  
-  console.log("calling...",startedAppointments);
-  
- 
   if (startedAppointments.length) {
    console.log('callig again');
 
     const response = await axiosInstance.post('/api/doctor/appointment-alert', {
       startedAppointments
     })
-
-    console.log('...kittndo......',response)
-    
-
-    console.log(`Started ${startedAppointments.length} appointment(s).`);
   }
 });
 
@@ -125,8 +116,7 @@ if (!DoctorProto || !DoctorProto.DoctorService ) {
 }
  console.log('Doctor service found in proto file');
 
-// Create gRPC server
-// In notification service where you create the grpc server
+
 const grpcServer = new grpc.Server({
   'grpc.max_send_message_length': 10 * 1024 * 1024, 
   'grpc.max_receive_message_length': 10 * 1024 * 1024 
@@ -138,18 +128,39 @@ console.log('gRPC server created');
 // Add gRPC services
 console.log('Adding services to gRPC server...');
 grpcServer.addService(DoctorProto.DoctorService.service, {
-  StoreAppointmentSlots:StoreAppointmentSlotsControllerr.storeAppointmentSlots,
-  fetchingDoctorSlots:StoreAppointmentSlotsControllerr.fetchDoctorSlots,
-   fetchingAppontMentSlotes:FetchAppontMentSlotesControllerr.fetchingAppontMentSlotes,
-   StoreAppointMent:FetchAppontMentSlotesControllerr.MakingAppointMent,
-    fectingUserAppointMents:FetchAppontMentSlotesControllerr.fetchingUserApponitMents,
-    fectingAllUserAppointMents:FetchAppontMentSlotesControllerr.fetchingUserAllApponitMents,
-    RescheduleAppointment :StoreAppointmentSlotsControllerr.rescheduleAppointment,
-    CancelUserAppointMent:StoreAppointmentSlotsControllerr.CancelingAppointMentUserSide,
-    StoreMessage:ChatHandlingController.StoreMsngIntoDb,
-});
-//CancelUserAppointMent
 
+  StoreAppointmentSlots:StoreAppointmentSlotsControllerr.storeAppointmentSlots,
+
+  fetchingDoctorSlots:StoreAppointmentSlotsControllerr.fetchDoctorSlots,
+
+   fetchingAppontMentSlotes:FetchAppontMentSlotesControllerr.fetchingAppontMentSlotes,
+
+   StoreAppointMent:FetchAppontMentSlotesControllerr.MakingAppointMent,
+
+    fectingUserAppointMents:FetchAppontMentSlotesControllerr.fetchingUserApponitMents,
+
+    fectingAllUserAppointMents:FetchAppontMentSlotesControllerr.fetchingUserAllApponitMents,
+
+    RescheduleAppointment :StoreAppointmentSlotsControllerr.rescheduleAppointment,
+
+    CancelUserAppointMent:StoreAppointmentSlotsControllerr.CancelingAppointMentUserSide,
+
+    StoreMessage:ChatHandlingController.StoreMsngIntoDb,
+
+    fetchingConversations:ChatHandlingController.fetchingConversations,
+
+    AppointmentCancelingDueToUser:FetchAppontMentSlotesControllerr.cancellingUserAppointment,
+
+    AfterTheConsultationUpdatingAppointMent:ChatHandlingController.AfterTheConsultationUpdatingAppointMent,
+
+    makingAddPrescription:StoreAppointmentSlotsControllerr.CreatingPrescription,
+
+    fetchingPrescription:StoreAppointmentSlotsControllerr.fetchingPrescription,
+
+    doctorCancellingUserBookedAppointMent:StoreAppointmentSlotsControllerr.doctorCancellingUserAppointment,
+});
+
+//fectingUserAppointMents
 
 console.log('Services added to gRPC server');
 
