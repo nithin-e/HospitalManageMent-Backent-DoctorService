@@ -1,5 +1,4 @@
 import * as grpc from "@grpc/grpc-js";
-// import { IfetchAppontMentSlotesController } from "../interFace/fetchAppontMentSlotesInterFace";
 import {
   AllAppointmentsResponse,
   AppointmentRequest,
@@ -11,18 +10,18 @@ import {
   UserAppointmentsRequest,
   UserAppointmentsResponse,
 } from "../../doctorInterFace/IdoctorType";
-import { IfetchAppontMentSlotesService } from "../../service/interFace/fetchAppontMentSlotesInterFace";
+import { IFetchAppointmentSlotsService } from "../../service/interFace/fetchAppontMentSlotesInterFace";
 
-export default class fetchingAppontMentSlotesController
+export default class FetchAppointmentSlotsController 
   
 {
-  private fetchAppontMentSlotesService: IfetchAppontMentSlotesService;
+  private fetchAppontMentSlotesService: IFetchAppointmentSlotsService;
 
-  constructor(fetchAppontMentSlotesService: IfetchAppontMentSlotesService) {
+  constructor(fetchAppontMentSlotesService: IFetchAppointmentSlotsService) {
     this.fetchAppontMentSlotesService = fetchAppontMentSlotesService;
   }
 
-  fetchingAppontMentSlotes = async (
+  fetchAppointmentSlots  = async (
     call: { request: FetchAppointmentSlotsRequest },
     callback: ( error: grpc.ServiceError | null, response?: FetchAppointmentSlotsResponse) => void
   ) => {
@@ -30,7 +29,7 @@ export default class fetchingAppontMentSlotesController
       console.log("doctor controller request:", call.request);
 
       const dbResponse =
-        await this.fetchAppontMentSlotesService.fetchingAppontMent__Slotes(
+        await this.fetchAppontMentSlotesService.fetchAppointmentSlots(
           call.request
         );
 
@@ -47,7 +46,7 @@ export default class fetchingAppontMentSlotesController
     }
   };
 
-  MakingAppointMent = async (
+  makeAppointment  = async (
     call: { request: AppointmentRequest },
     callback: (error: any, response?: ControllerAppointmentResponse) => void
   ) => {
@@ -55,7 +54,7 @@ export default class fetchingAppontMentSlotesController
       console.log("Controller received appointment request:", call.request);
 
       const dbResponse =
-        await this.fetchAppontMentSlotesService.Making_Appoint_Ment(
+        await this.fetchAppontMentSlotesService.makeAppointment(
           call.request
         );
 
@@ -78,14 +77,14 @@ export default class fetchingAppontMentSlotesController
     }
   };
 
-  fetchingUserApponitMents = async (
+  fetchUserAppointments  = async (
     call: { request: UserAppointmentsRequest },
     callback: ( error: grpc.ServiceError | null, response?: UserAppointmentsResponse) => void
   ) => {
     try {
       const { email } = call.request;
       const response =
-        await this.fetchAppontMentSlotesService.fecting_UserAppointments(email);
+        await this.fetchAppontMentSlotesService.fetchUserAppointments(email);
 
       callback(null, {
         appointments: response.appointments,
@@ -102,7 +101,7 @@ export default class fetchingAppontMentSlotesController
     }
   };
 
-  fetchingUserAllApponitMents = async (
+  fetchAllUserAppointments  = async (
     call: {},
     callback: (
       error: grpc.ServiceError | null,
@@ -111,7 +110,7 @@ export default class fetchingAppontMentSlotesController
   ) => {
     try {
       const response =
-        await this.fetchAppontMentSlotesService.fecting_UserAllAppointments();
+        await this.fetchAppontMentSlotesService.fetchAllUserAppointments();
 
       console.log("Fetched all appointments:", response);
 
@@ -125,7 +124,7 @@ export default class fetchingAppontMentSlotesController
     }
   };
 
-  cancellingUserAppointment = async (
+  cancelUserAppointment  = async (
     call: { request: CancelAppointmentRequest },
     callback: (
       error: grpc.ServiceError | null,
@@ -140,7 +139,7 @@ export default class fetchingAppontMentSlotesController
       );
 
       const response =
-        await this.fetchAppontMentSlotesService.cancellingUserAppointment__DueToUser(
+        await this.fetchAppontMentSlotesService.cancelUserAppointment(
           appointmentId
         );
 

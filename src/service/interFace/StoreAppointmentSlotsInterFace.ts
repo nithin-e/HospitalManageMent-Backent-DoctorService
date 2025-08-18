@@ -6,12 +6,12 @@ import { CancelData, CancelResponse, FetchPrescriptionRequest, FetchPrescription
 
 
 export interface IStoreAppointmentSlotsService {
-    storeAppointment_Slots(appointmentData:AppointmentSlotsData): Promise<DbResponse>;
-    fetchDoctor__Slots(email:string): Promise<FetchDoctorSlotsResponse>;
-    slotReschedule__Appointment(rescheduleData: RescheduleAppointmentRequest): Promise<RescheduleAppointmentResponse>;
-    CancelingAppointMent__UserSide(cancelData: CancelData): Promise<CancelResponse>;
-    Creating_Prescription(PrescriptionData: PrescriptionData): Promise<PrescriptionResponse>;
-    fetching__Prescription( request: FetchPrescriptionRequest): Promise<FetchPrescriptionResponse>;
-    doctorCancelling_UserAppointment( request: appointmentaData): Promise<Cancelres>;
+  createAppointmentSlot(data: AppointmentSlotsData): Promise<DbResponse>;
+  getDoctorSlots(email: string): Promise<FetchDoctorSlotsResponse>;
+  rescheduleAppointment(data: RescheduleAppointmentRequest): Promise<RescheduleAppointmentResponse>;
+  cancelAppointmentByUser(data: CancelData): Promise<CancelResponse>;
+  createPrescription(data: PrescriptionData): Promise<PrescriptionResponse>;
+  getPrescription(request: FetchPrescriptionRequest): Promise<FetchPrescriptionResponse>;
+  cancelAppointmentByDoctor(request: appointmentaData): Promise<Cancelres>;
 }
    

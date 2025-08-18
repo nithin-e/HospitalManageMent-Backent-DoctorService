@@ -1,4 +1,4 @@
-import { IchatHandlingRepo } from '../interFace/chatHandlingRepoInterFace';
+import { IChatHandlingRepo } from '../interFace/chatHandlingRepoInterFace';
 import { Types } from 'mongoose';
 import Chat from '../../entities/meetSchema';
 import Message from '../../entities/messageSchema';
@@ -7,18 +7,18 @@ import { AppointmentUpdateResponse, ChatMessageDbResponse, ChatMessageStorageReq
 
 
 
-interface DbResponse {
-  success: boolean;
-  message: string;
-  messageId: any;
-  conversationId: string;
-  doctorId: string;
-}
+// interface DbResponse {
+//   success: boolean;
+//   message: string;
+//   messageId: any;
+//   conversationId: string;
+//   doctorId: string;
+// }
 
-export default class chatHandlingRepo implements IchatHandlingRepo {
+export default class ChatHandlingRepo  implements IChatHandlingRepo {
 
   
-  Store_MsngInto__Db = async (messageData: ChatMessageStorageRequest): Promise<ChatMessageDbResponse> => {
+  storeMessage = async (messageData: ChatMessageStorageRequest): Promise<ChatMessageDbResponse> => {
     try {
       const {
         appointmentId,
@@ -107,7 +107,7 @@ export default class chatHandlingRepo implements IchatHandlingRepo {
   };
 
 
-  fetching_Conversations = async (userId: string, doctorId: string): Promise<ConversationDbFetchResponse> => {
+  fetchConversations = async (userId: string, doctorId: string): Promise<ConversationDbFetchResponse> => {
   try {
     const userObjectId = new Types.ObjectId(userId);
     const doctorObjectId = new Types.ObjectId(doctorId);
@@ -166,7 +166,7 @@ export default class chatHandlingRepo implements IchatHandlingRepo {
 
 
 
-AfterTheConsultation_Updating_AppointMent = async (
+updateAppointmentAfterConsultation = async (
   appointmentId: string,
   endedBy: string
 ): Promise<AppointmentUpdateResponse> => {
@@ -202,7 +202,6 @@ AfterTheConsultation_Updating_AppointMent = async (
       };
     }
 
-    // If not ended by doctor, still return success with userId
     return {
       success: true,
       patientEmail: patientEmail?.toString() ||''

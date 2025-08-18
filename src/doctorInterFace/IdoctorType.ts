@@ -45,7 +45,7 @@ import mongoose, { Types } from "mongoose";
 
  export interface GrpcCall {
     request: AppointmentSlotsData;
-    metadata?: any;
+    metadata?: string|number|boolean;
     cancelled?: boolean;
   }
 
@@ -497,7 +497,7 @@ export interface AppointmentUpdateResponse {
   success: boolean;
   error?: string;
   patientEmail?: string;
-  appointment?: any; // You might want to replace 'any' with a proper Appointment type
+  appointment?: any; 
 }
 
 export interface AppointmentUpdateParams {

@@ -1,21 +1,21 @@
-import { IfetchAppontMentSlotesService } from '../interFace/fetchAppontMentSlotesInterFace';
+import { IFetchAppointmentSlotsService } from '../interFace/fetchAppontMentSlotesInterFace';
 import FetchingAppontMentSlotesRepo from '../../repositoriess/implementation/fetchingAppontMentSlotesRepo'
 import { AppointmentRequest, AppointmentResponse, CancelAppointmentRequest, CancelAppointmentResponse, FetchAppointmentSlotsRequest, FetchAppointmentSlotsResponse, IAppointment, UserAppointmentsResponse } from '../../doctorInterFace/IdoctorType';
-import { IfetchAppontMentSlotesRepo } from '../../repositoriess/interFace/fetchingAppontMentSlotesRepoInterFace';
+import { IAppointmentRepository } from '../../repositoriess/interFace/fetchingAppontMentSlotesRepoInterFace';
 
 
 
 
-export default class fetchingAppontMentSlotesService  implements IfetchAppontMentSlotesService{
-    private fetchingAppontMentSlotesRepository:IfetchAppontMentSlotesRepo;
-    constructor(fetchingAppontMentSlotesRepo:IfetchAppontMentSlotesRepo) {
+export default class fetchingAppontMentSlotesService  implements IFetchAppointmentSlotsService{
+    private fetchingAppontMentSlotesRepository:IAppointmentRepository;
+    constructor(fetchingAppontMentSlotesRepo:IAppointmentRepository) {
         this.fetchingAppontMentSlotesRepository=fetchingAppontMentSlotesRepo
     }
 
 
-    fetchingAppontMent__Slotes = async (request: FetchAppointmentSlotsRequest): Promise<FetchAppointmentSlotsResponse> => {
+    fetchAppointmentSlots = async (request: FetchAppointmentSlotsRequest): Promise<FetchAppointmentSlotsResponse> => {
       try {
-          const response = await this.fetchingAppontMentSlotesRepository.fetching__AppontMentSlotes(request);
+          const response = await this.fetchingAppontMentSlotesRepository.fetchAppointmentSlots(request);
           return response;
       } catch (error) {
           console.error('Error in service layer:', error);
@@ -23,7 +23,7 @@ export default class fetchingAppontMentSlotesService  implements IfetchAppontMen
       }
   }
 
-  Making_Appoint_Ment = async (request: AppointmentRequest): Promise<AppointmentResponse> => {
+  makeAppointment = async (request: AppointmentRequest): Promise<AppointmentResponse> => {
     try {
       console.log('Service layer received request:', request);
       
@@ -47,7 +47,7 @@ export default class fetchingAppontMentSlotesService  implements IfetchAppontMen
       console.log('Validated appointment data:', appointmentData);
       
       // Pass to repository
-      return await this.fetchingAppontMentSlotesRepository.making__Appoint__ment(appointmentData);
+      return await this.fetchingAppontMentSlotesRepository.createAppointment(appointmentData);
     } catch (error) {
       console.error('Error in service layer:', error);
       throw error;
@@ -56,9 +56,9 @@ export default class fetchingAppontMentSlotesService  implements IfetchAppontMen
 
 
 
-fecting_UserAppointments = async (email: string): Promise<UserAppointmentsResponse> => {
+fetchUserAppointments = async (email: string): Promise<UserAppointmentsResponse> => {
   try {
-      return await this.fetchingAppontMentSlotesRepository.fetching_User__ApointMents(email);
+      return await this.fetchingAppontMentSlotesRepository.fetchUserAppointments(email);
   } catch (error) {
       console.error("Error in fetching single user use case:", error);
       throw error;
@@ -67,9 +67,9 @@ fecting_UserAppointments = async (email: string): Promise<UserAppointmentsRespon
 
 
 
-fecting_UserAllAppointments = async (): Promise<IAppointment[]> => {
+fetchAllUserAppointments = async (): Promise<IAppointment[]> => {
   try {
-    const response = await this.fetchingAppontMentSlotesRepository.fetching_All__User__ApointMents();
+    const response = await this.fetchingAppontMentSlotesRepository.fetchAllUserAppointments();
     return response;
   } catch (error) {
     console.error("Error in fetching all user appointments service:", error);
@@ -78,7 +78,7 @@ fecting_UserAllAppointments = async (): Promise<IAppointment[]> => {
 }
 
 
-cancellingUserAppointment__DueToUser = async (
+cancelUserAppointment = async (
   appointmentId: CancelAppointmentRequest['appointmentId']
 ): Promise<CancelAppointmentResponse> => {
   try {
@@ -86,7 +86,7 @@ cancellingUserAppointment__DueToUser = async (
       throw new Error('Appointment ID is required');
     }
 
-    const response = await this.fetchingAppontMentSlotesRepository.cancelling_UserAppointment__DueToUser(appointmentId);
+    const response = await this.fetchingAppontMentSlotesRepository.cancelUserAppointment(appointmentId);
       
     
     return response;

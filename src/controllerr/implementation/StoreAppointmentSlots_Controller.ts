@@ -42,19 +42,19 @@ export interface appointmentaData {
   patientEmail:string;
 }
 
-export default class StoreAppointmentSlotsController {
+export default class StoreAppointmentSlotsController  {
   private storeAppointmentSlotsService: IStoreAppointmentSlotsService;
 
   constructor(storeAppointmentSlotsService: IStoreAppointmentSlotsService) {
     this.storeAppointmentSlotsService = storeAppointmentSlotsService;
   }
 
-  storeAppointmentSlots = async (call: GrpcCallOne, callback: GrpcCallback) => {
+  storeAppointmentSlots  = async (call: GrpcCallOne, callback: GrpcCallback) => {
     try {
       console.log("Doctor slots processed in controller:", call.request);
 
       const dbResponse =
-        await this.storeAppointmentSlotsService.storeAppointment_Slots(
+        await this.storeAppointmentSlotsService.createAppointmentSlot(
           call.request
         );
 
@@ -69,7 +69,7 @@ export default class StoreAppointmentSlotsController {
     }
   };
 
-  fetchDoctorSlots = async (
+  fetchDoctorSlots  = async (
     call: GrpcCall,
     callback: GrpcCallbackk
   ): Promise<void> => {
@@ -80,7 +80,7 @@ export default class StoreAppointmentSlotsController {
       console.log("enthappo ivde avastha", email);
       console.log(this.storeAppointmentSlotsService);
       const response =
-        await this.storeAppointmentSlotsService.fetchDoctor__Slots(email);
+        await this.storeAppointmentSlotsService.getDoctorSlots(email);
       console.log("Fetched doctor slots:", response);
       callback(null, response);
     } catch (error) {
@@ -93,7 +93,7 @@ export default class StoreAppointmentSlotsController {
     }
   };
 
-  rescheduleAppointment = async (
+  rescheduleAppointment  = async (
     call: { request: RescheduleAppointmentRequest },
     callback: (
       error: grpc.ServiceError | null,
@@ -102,7 +102,7 @@ export default class StoreAppointmentSlotsController {
   ) => {
     try {
       const dbResponse =
-        await this.storeAppointmentSlotsService.slotReschedule__Appointment(
+        await this.storeAppointmentSlotsService.rescheduleAppointment(
           call.request
         );
       console.log("check for the final result in CONTROLLER ", dbResponse);
@@ -117,14 +117,14 @@ export default class StoreAppointmentSlotsController {
     }
   };
 
-  CancelingAppointMentUserSide = async (
+  cancelAppointmentUserSide  = async (
     call: ServerUnaryCall<CancelRequester, CancelResponse>,
     callback: sendUnaryData<CancelResponse>
   ) => {
     try {
       console.log("check here getting the cancelling details", call.request);
       const res =
-        await this.storeAppointmentSlotsService.CancelingAppointMent__UserSide(
+        await this.storeAppointmentSlotsService.cancelAppointmentByUser(
           call.request as unknown as CancelData
         );
 
@@ -146,7 +146,7 @@ export default class StoreAppointmentSlotsController {
     callback: ( error: grpc.ServiceError | null, response?: PrescriptionResponse) => void
   ) => {
     try {
-      const res = await this.storeAppointmentSlotsService.Creating_Prescription(
+      const res = await this.storeAppointmentSlotsService.createPrescription(
         call.request
       );
       callback(null, res);
@@ -160,13 +160,13 @@ export default class StoreAppointmentSlotsController {
     }
   };
 
-  fetchingPrescription = async (
+  fetchPrescription  = async (
     call: { request: FetchPrescriptionRequest },
     callback: ( error: grpc.ServiceError | null, response?: FetchPrescriptionResponse) => void
   ) => {
     try {
       const res =
-        await this.storeAppointmentSlotsService.fetching__Prescription(
+        await this.storeAppointmentSlotsService.getPrescription(
           call.request
         );
       callback(null, res);
@@ -182,13 +182,13 @@ export default class StoreAppointmentSlotsController {
 
 
 
-doctorCancellingUserAppointment = async (
+doctorCancelAppointment  = async (
   call: { request: appointmentaData },
   callback: (error: ServiceError | null, response?: Cancelres) => void
 ) => {
   try {
     console.log('Data at cancellation time:', call.request);
-    const res = await this.storeAppointmentSlotsService.doctorCancelling_UserAppointment(call.request);
+    const res = await this.storeAppointmentSlotsService.cancelAppointmentByDoctor(call.request);
     callback(null, res);
   } catch (error) {
     // Convert to a proper gRPC ServiceError

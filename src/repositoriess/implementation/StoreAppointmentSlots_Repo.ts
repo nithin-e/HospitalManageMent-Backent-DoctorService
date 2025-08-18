@@ -1,6 +1,6 @@
 import AppointmentSlot from "../../entities/storeAppointmentSlot_schema";
 import AppointmentModel from '../../entities/AppointmentModel'
-import { IStoreAppointmentSlots_Repo } from "../interFace/StoreAppointmentSlots_RepoInterFace";
+import { IAppointmentSlotsRepository } from "../interFace/StoreAppointmentSlots_RepoInterFace";
 import Prescription from "../../entities/PrescriptionModel";
 import { AppointmentSlotDocument, AppointmentSlotsData, Cancelres, DbResponse, FetchDoctorSlotsResponse, RescheduleAppointmentRequest, RescheduleAppointmentResponse, Slot, TimeSlot } from "../../doctorInterFace/IdoctorType";
 import { generateRecurringDates } from "../../utility/generateRecurringDates";
@@ -91,9 +91,9 @@ export interface FetchPrescriptionResponse {
 
 
 
- export default class FetchNotificationRepo implements IStoreAppointmentSlots_Repo {
+ export default class FetchNotificationRepo implements IAppointmentSlotsRepository {
     
-  store__Appointment_Slots = async (appointmentData: AppointmentSlotsData):Promise<DbResponse> => {
+  storeAppointmentSlots  = async (appointmentData: AppointmentSlotsData):Promise<DbResponse> => {
     try {
 
       console.log('Repository layer processing appointment data:',appointmentData);
@@ -335,7 +335,7 @@ export interface FetchPrescriptionResponse {
 
 
 
-  async fetch_Doctor__Slots(email:string): Promise<FetchDoctorSlotsResponse> {
+  async fetchDoctorSlots(email:string): Promise<FetchDoctorSlotsResponse> {
     try {
         const doctorSlots: AppointmentSlotDocument[] = await AppointmentSlot.find({ 
             doctorEmail: email 
@@ -382,7 +382,7 @@ export interface FetchPrescriptionResponse {
 }
 
   // Repository layer: Processing reschedule data
-   slot_Reschedule_Appointment = async (
+   rescheduleAppointment  = async (
     rescheduleData: RescheduleAppointmentRequest
   ): Promise<RescheduleAppointmentResponse> => {
     try {
@@ -494,7 +494,7 @@ export interface FetchPrescriptionResponse {
     
 
 
-  Canceling_AppointMent__UserSide = async (cancelData: CancelData): Promise<CancelResponse> => {
+  cancelAppointmentByUser  = async (cancelData: CancelData): Promise<CancelResponse> => {
     try {
       const { time, date, email } = cancelData;
       
@@ -594,7 +594,7 @@ export interface FetchPrescriptionResponse {
 
 
 
-  Creating__Prescription = async (prescriptionData: PrescriptionData): Promise<PrescriptionResponse> => {
+  createPrescription  = async (prescriptionData: PrescriptionData): Promise<PrescriptionResponse> => {
     try {
       console.log('This is repository layer so check the Prescription data', prescriptionData);
   
@@ -627,7 +627,7 @@ export interface FetchPrescriptionResponse {
   
 
 
-fetching_Prescription = async (prescriptionData: FetchPrescriptionRequest): Promise<FetchPrescriptionResponse> => {
+fetchPrescription  = async (prescriptionData: FetchPrescriptionRequest): Promise<FetchPrescriptionResponse> => {
   try {
     console.log('check da kuttaa it is getting', prescriptionData);
     
@@ -664,7 +664,7 @@ fetching_Prescription = async (prescriptionData: FetchPrescriptionRequest): Prom
 
 
 
-doctorCancelling_User_Appointment = async (appointmentData: appointmentaData): Promise<Cancelres> => {
+cancelAppointmentByDoctor  = async (appointmentData: appointmentaData): Promise<Cancelres> => {
     try {
         // implement the logic here
         const appointment = await AppointmentModel.findOne({

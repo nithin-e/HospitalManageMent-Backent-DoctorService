@@ -1,24 +1,24 @@
 import chatHandlingRepository from '../../repositoriess/implementation/chatHandlingRepo';
 import * as grpc from '@grpc/grpc-js';
-import { IchatHandlingService } from '../interFace/chatHandlingServiceInterFace';
+import {  IChatHandlingService } from '../interFace/chatHandlingServiceInterFace';
 import { AppointmentUpdateParams, AppointmentUpdateResponse, ChatMessageServiceResponse, ChatMessageStorageRequest, ConversationFetchRequest, ConversationServiceFetchResponse } from '../../doctorInterFace/IdoctorType';
-import { IchatHandlingRepo } from '../../repositoriess/interFace/chatHandlingRepoInterFace';
+import { IChatHandlingRepo } from '../../repositoriess/interFace/chatHandlingRepoInterFace';
 
-export default class  chatHandlingService implements IchatHandlingService {
-    private ChatHandlingRepo:IchatHandlingRepo
-    constructor(chatHandlingRepository:IchatHandlingRepo) {
+export default class  ChatHandlingService  implements IChatHandlingService {
+    private ChatHandlingRepo:IChatHandlingRepo
+    constructor(chatHandlingRepository:IChatHandlingRepo) {
         this.ChatHandlingRepo=chatHandlingRepository
     }
 
     
 
 
-  StoreMsngInto__Db = async (messageData: ChatMessageStorageRequest): Promise<ChatMessageServiceResponse> => {
+  storeMessage = async (messageData: ChatMessageStorageRequest): Promise<ChatMessageServiceResponse> => {
     try {
       console.log('Service layer received message data:', messageData);
 
       // Call repository layer
-      const dbResponse = await this.ChatHandlingRepo.Store_MsngInto__Db(messageData);
+      const dbResponse = await this.ChatHandlingRepo.storeMessage(messageData);
 
       return {
         success: true,
@@ -41,12 +41,12 @@ export default class  chatHandlingService implements IchatHandlingService {
   };
 
 
-fetching__Conversations = async (messageData: ConversationFetchRequest): Promise<ConversationServiceFetchResponse> => {
+fetchConversations = async (messageData: ConversationFetchRequest): Promise<ConversationServiceFetchResponse> => {
     try {
       const { userId, doctorId } = messageData;
 
       // Call repository layer
-      const dbResponse = await this.ChatHandlingRepo.fetching_Conversations(userId, doctorId);
+      const dbResponse = await this.ChatHandlingRepo.fetchConversations(userId, doctorId);
       console.log('check this response in service while the fetching conversations', dbResponse);
 
       return {
@@ -66,12 +66,12 @@ fetching__Conversations = async (messageData: ConversationFetchRequest): Promise
     }
   };
 
-AfterTheConsultation___UpdatingAppointMent = async (
+updateAppointmentAfterConsultation = async (
     params: AppointmentUpdateParams
   ): Promise<AppointmentUpdateResponse> => {
     try {
       // Call repository layer
-      const dbResponse = await this.ChatHandlingRepo.AfterTheConsultation_Updating_AppointMent(
+      const dbResponse = await this.ChatHandlingRepo.updateAppointmentAfterConsultation(
         params.appointmentId, 
         params.endedBy
       );

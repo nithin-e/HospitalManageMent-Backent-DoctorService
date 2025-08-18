@@ -1,26 +1,20 @@
 import * as grpc from '@grpc/grpc-js';
 import { AppointmentUpdateParams, AppointmentUpdateResponse, ChatMessageGrpcCall, ChatMessageGrpcCallback, ChatMessageGrpcResponse, ChatMessageStorageRequest, ConversationGrpcFetchCall, ConversationGrpcFetchCallback, ConversationGrpcFetchResponse } from "../../doctorInterFace/IdoctorType";
-import { IchatHandlingService } from "../../service/interFace/chatHandlingServiceInterFace";
+import { IChatHandlingService } from "../../service/interFace/chatHandlingServiceInterFace";
 
-// interface StoreMessageResponse {
-//   success: boolean;
-//   message: string;
-//   messageId: string;
-//   conversationId: string;
-//   doctorId: string;
-// }
 
-export default class chatHandlingController {
 
-    private chatHandlingServices:IchatHandlingService
+export default class ChatHandlingController    {
 
-    constructor(chatHandlingServices:IchatHandlingService) {
+    private chatHandlingServices:IChatHandlingService
+
+    constructor(chatHandlingServices:IChatHandlingService) {
         this.chatHandlingServices=chatHandlingServices
     }
 
 
 
-   StoreMsngIntoDb = async (call: ChatMessageGrpcCall, callback: ChatMessageGrpcCallback): Promise<void> => {
+   storeMessage  = async (call: ChatMessageGrpcCall, callback: ChatMessageGrpcCallback): Promise<void> => {
     try {
       console.log('Doctor service StoreMessage request:', call.request);
 
@@ -39,7 +33,7 @@ export default class chatHandlingController {
               };
 
       // Call service layer
-      const dbResponse = await this.chatHandlingServices.StoreMsngInto__Db(messageData);
+      const dbResponse = await this.chatHandlingServices.storeMessage(messageData);
 
       const response: ChatMessageGrpcResponse = {
         success: dbResponse.success,
@@ -64,7 +58,7 @@ export default class chatHandlingController {
 
 
 
-       fetchingConversations = async (call: ConversationGrpcFetchCall, callback: ConversationGrpcFetchCallback): Promise<void> => {
+       fetchConversations  = async (call: ConversationGrpcFetchCall, callback: ConversationGrpcFetchCallback): Promise<void> => {
     try {
       console.log('Doctor service fetchingConversations request:', call.request);
 
@@ -72,7 +66,7 @@ export default class chatHandlingController {
       const { userId, doctorId } = call.request;
 
       // Call service layer
-      const dbResponse = await this.chatHandlingServices.fetching__Conversations({
+      const dbResponse = await this.chatHandlingServices.fetchConversations({
         userId,
         doctorId
       });
@@ -103,7 +97,7 @@ export default class chatHandlingController {
      
   
 
-    AfterTheConsultationUpdatingAppointMent = async (call: any, callback: any) => {
+    updateAppointmentAfterConsultation  = async (call: any, callback: any) => {
     try {
       console.log('Doctor service fetchingConversations request:', call.request);
       const params: AppointmentUpdateParams = {
@@ -112,7 +106,7 @@ export default class chatHandlingController {
       };
       
      
-      const serviceResponse: AppointmentUpdateResponse = await this.chatHandlingServices.AfterTheConsultation___UpdatingAppointMent(params);
+      const serviceResponse: AppointmentUpdateResponse = await this.chatHandlingServices.updateAppointmentAfterConsultation(params);
       
       console.log('check the res in controller layer', serviceResponse);
       

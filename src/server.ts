@@ -40,13 +40,13 @@ const ChatHandlingController =new chatHandlingController(ChatHandlingServices)
 // Initialize dependency chain for fectingappointmentslotes
 const StoreAppointmentSlotsRepo=new storeAppointmentSlotsRepo()
 const StoreAppointmentSlotsService=new storeAppointmentSlotsService(StoreAppointmentSlotsRepo)
-const StoreAppointmentSlotsControllerr=new storeAppointmentSlotsControllerr(StoreAppointmentSlotsService)
+const StoreAppointmentSlotsController=new storeAppointmentSlotsControllerr(StoreAppointmentSlotsService)
 
 
 // Initialize dependency chain for fectingappointmentslotes
 const FetchingAppontMentSlotesRepo=new fetchingAppontMentSlotesRepo()
 const FetchAppontMentSlotesService=new fetchAppontMentSlotesService(FetchingAppontMentSlotesRepo)
-const FetchAppontMentSlotesControllerr=new fetchAppontMentSlotesControllerr(FetchAppontMentSlotesService)
+const FetchAppontMentSlotesController=new fetchAppontMentSlotesControllerr(FetchAppontMentSlotesService)
 
 
 
@@ -54,7 +54,7 @@ cron.schedule('* * * * *', async () => {
   
   const startedAppointments = await checkAppointments();
   if (startedAppointments.length) {
-   console.log('callig again');
+   console.log('callig again-----------------');
 
     const response = await axiosInstance.post('/api/doctor/appointment-alert', {
       startedAppointments
@@ -105,7 +105,6 @@ const packageDef = protoLoader.loadSync(protoPath, {
 console.log('Proto file loaded successfully');
 
 const grpcObject = grpc.loadPackageDefinition(packageDef) as unknown as any;
-// const NotificationProto = grpcObject.notification;
  const DoctorProto = grpcObject.Doctor;
 
 
@@ -129,38 +128,38 @@ console.log('gRPC server created');
 console.log('Adding services to gRPC server...');
 grpcServer.addService(DoctorProto.DoctorService.service, {
 
-  StoreAppointmentSlots:StoreAppointmentSlotsControllerr.storeAppointmentSlots,
+  StoreAppointmentSlots:StoreAppointmentSlotsController.storeAppointmentSlots,
 
-  fetchingDoctorSlots:StoreAppointmentSlotsControllerr.fetchDoctorSlots,
+  fetchingDoctorSlots:StoreAppointmentSlotsController.fetchDoctorSlots,
 
-   fetchingAppontMentSlotes:FetchAppontMentSlotesControllerr.fetchingAppontMentSlotes,
+   fetchingAppontMentSlotes:FetchAppontMentSlotesController.fetchAppointmentSlots,
 
-   StoreAppointMent:FetchAppontMentSlotesControllerr.MakingAppointMent,
+   StoreAppointMent:FetchAppontMentSlotesController.makeAppointment,
 
-    fectingUserAppointMents:FetchAppontMentSlotesControllerr.fetchingUserApponitMents,
+    fectingUserAppointMents:FetchAppontMentSlotesController.fetchUserAppointments,
 
-    fectingAllUserAppointMents:FetchAppontMentSlotesControllerr.fetchingUserAllApponitMents,
+    fectingAllUserAppointMents:FetchAppontMentSlotesController.fetchAllUserAppointments,
 
-    RescheduleAppointment :StoreAppointmentSlotsControllerr.rescheduleAppointment,
+    RescheduleAppointment :StoreAppointmentSlotsController.rescheduleAppointment,
 
-    CancelUserAppointMent:StoreAppointmentSlotsControllerr.CancelingAppointMentUserSide,
+    CancelUserAppointMent:StoreAppointmentSlotsController.cancelAppointmentUserSide,
 
-    StoreMessage:ChatHandlingController.StoreMsngIntoDb,
+    StoreMessage:ChatHandlingController.storeMessage,
 
-    fetchingConversations:ChatHandlingController.fetchingConversations,
+    fetchingConversations:ChatHandlingController.fetchConversations,
 
-    AppointmentCancelingDueToUser:FetchAppontMentSlotesControllerr.cancellingUserAppointment,
+    AppointmentCancelingDueToUser:FetchAppontMentSlotesController.cancelUserAppointment,
 
-    AfterTheConsultationUpdatingAppointMent:ChatHandlingController.AfterTheConsultationUpdatingAppointMent,
+    AfterTheConsultationUpdatingAppointMent:ChatHandlingController.updateAppointmentAfterConsultation,
 
-    makingAddPrescription:StoreAppointmentSlotsControllerr.CreatingPrescription,
+    makingAddPrescription:StoreAppointmentSlotsController.CreatingPrescription,
 
-    fetchingPrescription:StoreAppointmentSlotsControllerr.fetchingPrescription,
+    fetchingPrescription:StoreAppointmentSlotsController.fetchPrescription,
 
-    doctorCancellingUserBookedAppointMent:StoreAppointmentSlotsControllerr.doctorCancellingUserAppointment,
+    doctorCancellingUserBookedAppointMent:StoreAppointmentSlotsController.doctorCancelAppointment,
 });
 
-//fectingUserAppointMents
+//storeNotificationData
 
 console.log('Services added to gRPC server');
 

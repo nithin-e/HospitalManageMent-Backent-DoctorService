@@ -1,6 +1,6 @@
 import AppointmentSlot from "../../entities/storeAppointmentSlot_schema";
 import AppointmentModel from '../../entities/AppointmentModel'
-import { IfetchAppontMentSlotesRepo } from "../interFace/fetchingAppontMentSlotesRepoInterFace";
+import { IAppointmentRepository } from "../interFace/fetchingAppontMentSlotesRepoInterFace";
 import { Appointment, AppointmentRequest, AppointmentResponse, CancelAppointmentRequest, CancelAppointmentResponse, DateSlots, FetchAppointmentSlotsRequest, FetchAppointmentSlotsResponse, IAppointment, MongoAppointment, MongoAppointmentt, SlotInfo, UserAppointmentsResponse } from "../../doctorInterFace/IdoctorType";
 
 
@@ -9,9 +9,9 @@ export interface AllAppointmentsResponse {
 }
 
 
-export default class fetchingAppontMentSloteRepo implements IfetchAppontMentSlotesRepo{
+export default class fetchingAppontMentSloteRepo implements IAppointmentRepository{
   
-  fetching__AppontMentSlotes = async (request: FetchAppointmentSlotsRequest): Promise<FetchAppointmentSlotsResponse> => {
+  fetchAppointmentSlots = async (request: FetchAppointmentSlotsRequest): Promise<FetchAppointmentSlotsResponse> => {
     try {
       console.log('Fetching appointment slots for email in repo:', request.email);
       
@@ -71,7 +71,7 @@ export default class fetchingAppontMentSloteRepo implements IfetchAppontMentSlot
 }
 
 
-making__Appoint__ment = async (appointmentData: AppointmentRequest): Promise<AppointmentResponse> => {
+createAppointment = async (appointmentData: AppointmentRequest): Promise<AppointmentResponse> => {
   try {
     console.log('Appointment data in repository:', appointmentData);
     
@@ -132,7 +132,7 @@ making__Appoint__ment = async (appointmentData: AppointmentRequest): Promise<App
 }
 
 
-fetching_User__ApointMents = async (email: string): Promise<UserAppointmentsResponse> => {
+fetchUserAppointments = async (email: string): Promise<UserAppointmentsResponse> => {
   try {
     console.log('Fetching user appointments with email in repo:', email);
     
@@ -190,7 +190,7 @@ fetching_User__ApointMents = async (email: string): Promise<UserAppointmentsResp
 
 
 
-fetching_All__User__ApointMents = async (): Promise<IAppointment[]> => {
+fetchAllUserAppointments = async (): Promise<IAppointment[]> => {
   try {
     const appointments = await AppointmentModel.find()
       .sort({ appointmentDate: 1, appointmentTime: 1 })
@@ -232,7 +232,7 @@ fetching_All__User__ApointMents = async (): Promise<IAppointment[]> => {
 
 
 
-cancelling_UserAppointment__DueToUser = async (
+cancelUserAppointment = async (
   appointmentId: CancelAppointmentRequest['appointmentId']
 ): Promise<CancelAppointmentResponse> => {
   try {
