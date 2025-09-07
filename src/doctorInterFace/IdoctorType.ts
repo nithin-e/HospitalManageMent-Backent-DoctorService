@@ -1,4 +1,4 @@
-import mongoose, { Types } from "mongoose";
+import mongoose, { ObjectId, Types } from "mongoose";
 
 // Individual time slot interface
  export interface TimeSlot {
@@ -112,13 +112,7 @@ export interface FetchDoctorSlotsRequest {
     email: string;
 }
 
-export interface FetchDoctorSlotsResponse {
-    success: boolean;
-    message: string;
-    slots_created: number;
-    dates: string[];
-    slots:any 
-}
+
 
 export interface AppointmentSlotDocument extends mongoose.Document {
     doctorEmail: string;
@@ -245,7 +239,7 @@ export interface Appointment {
 
 
 export interface MongoAppointmentt {
-  _id?: any;
+  _id?: ObjectId;
   id?: string;
   patientName?: string | null;
   doctorEmail?: string | null;
@@ -261,6 +255,8 @@ export interface MongoAppointmentt {
   userRefoundAmount?: string;
   doctorId?: string | null;
   Prescription?: string | null;
+  doctorAmount?:string|null;
+  userId?:string|null;
 }
 
 
@@ -299,17 +295,38 @@ export interface UserAppointmentsResponse {
   appointments: Appointment[];
   success: boolean;
   message: string;
+  currentPage: number;
+  totalPages: number;
+  totalAppointments: number;
+  limit: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
 }
 
 // Request Type
 export interface UserAppointmentsRequest {
   email: string;
+  page: number;
+  limit: number;
 }
+
+// export interface AllAppointmentsResponse {
+//   appointments: IAppointment[];
+// }
+
+
 
 export interface AllAppointmentsResponse {
   appointments: IAppointment[];
+  success?: boolean;
+  message?: string;
+  currentPage?: number;
+  totalPages?: number;
+  totalAppointments?: number;
+  limit?: number;
+  hasNextPage?: boolean;
+  hasPrevPage?: boolean;
 }
-
 
 
 export interface IAppointment {
@@ -415,8 +432,10 @@ export interface ChatMessageGrpcCall {
 }
 
 
+
+
 export type ChatMessageGrpcCallback = (
-  error: any | null,
+  error: Error | null,
   response: ChatMessageGrpcResponse | null
 ) => void;
 
@@ -486,7 +505,7 @@ export interface ConversationGrpcFetchCall {
 }
 
 export type ConversationGrpcFetchCallback = (
-  error: any | null,
+  error: Error | null,
   response: ConversationGrpcFetchResponse | null
 ) => void;
 
@@ -497,7 +516,7 @@ export interface AppointmentUpdateResponse {
   success: boolean;
   error?: string;
   patientEmail?: string;
-  appointment?: any; 
+  appointment?: IAppointment; 
 }
 
 export interface AppointmentUpdateParams {
@@ -506,7 +525,38 @@ export interface AppointmentUpdateParams {
 }
 
 
+export interface AppointmentUpdateRequest {
+  appointmentId: string;
+  endedBy: string;
+}
+
 
 export  interface Cancelres{
   success:boolean
+}
+
+
+export interface CreateServiceRequest {
+  name:string;
+  description:string
+}
+
+export interface CreateServiceResponse {
+  success:boolean
+}
+
+export interface DeleteServiceRequest {
+serviceId:string
+}
+
+export interface EditServiceRequest {
+serviceId:string
+name?:string;
+description?:string
+}
+
+export interface updateData {
+serviceId?:string
+name?:string;
+description?:string
 }

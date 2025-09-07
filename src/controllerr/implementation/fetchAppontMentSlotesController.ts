@@ -5,31 +5,45 @@ import {
   CancelAppointmentRequest,
   CancelAppointmentResponse,
   ControllerAppointmentResponse,
+  CreateServiceRequest,
+  CreateServiceResponse,
+  DeleteServiceRequest,
+  EditServiceRequest,
   FetchAppointmentSlotsRequest,
   FetchAppointmentSlotsResponse,
   UserAppointmentsRequest,
   UserAppointmentsResponse,
 } from "../../doctorInterFace/IdoctorType";
 import { IFetchAppointmentSlotsService } from "../../service/interFace/fetchAppontMentSlotesInterFace";
+import { IService } from "../../entities/serviceModel";
 
-export default class FetchAppointmentSlotsController 
-  
-{
-  private fetchAppontMentSlotesService: IFetchAppointmentSlotsService;
+interface FetchServiceRequest {}
+
+interface FetchServiceResponse {
+  services: IService[];
+  success?: boolean;
+  message?: string;
+}
+
+export default class FetchAppointmentSlotsController {
+  private _fetchAppontMentSlotesService: IFetchAppointmentSlotsService;
 
   constructor(fetchAppontMentSlotesService: IFetchAppointmentSlotsService) {
-    this.fetchAppontMentSlotesService = fetchAppontMentSlotesService;
+    this._fetchAppontMentSlotesService = fetchAppontMentSlotesService;
   }
 
-  fetchAppointmentSlots  = async (
+  fetchAppointmentSlots = async (
     call: { request: FetchAppointmentSlotsRequest },
-    callback: ( error: grpc.ServiceError | null, response?: FetchAppointmentSlotsResponse) => void
+    callback: (
+      error: grpc.ServiceError | null,
+      response?: FetchAppointmentSlotsResponse
+    ) => void
   ) => {
     try {
       console.log("doctor controller request:", call.request);
 
       const dbResponse =
-        await this.fetchAppontMentSlotesService.fetchAppointmentSlots(
+        await this._fetchAppontMentSlotesService.fetchAppointmentSlots(
           call.request
         );
 
@@ -46,17 +60,18 @@ export default class FetchAppointmentSlotsController
     }
   };
 
-  makeAppointment  = async (
+  makeAppointment = async (
     call: { request: AppointmentRequest },
-    callback: (error: any, response?: ControllerAppointmentResponse) => void
+    callback: (
+      error: grpc.ServiceError | null,
+      response?: ControllerAppointmentResponse
+    ) => void
   ) => {
     try {
       console.log("Controller received appointment request:", call.request);
 
       const dbResponse =
-        await this.fetchAppontMentSlotesService.makeAppointment(
-          call.request
-        );
+        await this._fetchAppontMentSlotesService.makeAppointment(call.request);
 
       console.log("Appointment created in controller:", dbResponse);
 
@@ -73,23 +88,43 @@ export default class FetchAppointmentSlotsController
         code: grpc.status.INTERNAL,
         message: (error as Error).message,
       };
-      callback(grpcError);
+      // callback(null,grpcError);
     }
   };
 
-  fetchUserAppointments  = async (
+  fetchUserAppointments = async (
     call: { request: UserAppointmentsRequest },
-    callback: ( error: grpc.ServiceError | null, response?: UserAppointmentsResponse) => void
+    callback: (
+      error: grpc.ServiceError | null,
+      response?: UserAppointmentsResponse
+    ) => void
   ) => {
     try {
-      const { email } = call.request;
+      const { email, page = 1, limit = 3 } = call.request;
+
+      // Validate pagination parameters
+      const validatedPage = Math.max(1, page);
+      const validatedLimit = Math.min(Math.max(1, limit), 100); // Max 100 items per page
+
       const response =
-        await this.fetchAppontMentSlotesService.fetchUserAppointments(email);
+        await this._fetchAppontMentSlotesService.fetchUserAppointments(
+          email,
+          validatedPage,
+          validatedLimit
+        );
+
+      console.log("machuveeeee check this", response);
 
       callback(null, {
         appointments: response.appointments,
         success: response.success,
         message: response.message,
+        currentPage: response.currentPage,
+        totalPages: response.totalPages,
+        totalAppointments: response.totalAppointments,
+        limit: response.limit,
+        hasNextPage: response.hasNextPage,
+        hasPrevPage: response.hasPrevPage,
       });
     } catch (error) {
       console.log("Error fetching user appointments:", error);
@@ -97,25 +132,39 @@ export default class FetchAppointmentSlotsController
         code: grpc.status.INTERNAL,
         message: (error as Error).message,
       };
-      // callback(grpcError);
+      // callback(grpcError,null);
     }
   };
 
-  fetchAllUserAppointments  = async (
-    call: {},
+  //
+  fetchAllUserAppointments = async (
+    call: { request: { page: number; limit: number } },
     callback: (
       error: grpc.ServiceError | null,
       response?: AllAppointmentsResponse
     ) => void
   ) => {
     try {
-      const response =
-        await this.fetchAppontMentSlotesService.fetchAllUserAppointments();
+      const { page, limit } = call.request;
 
-      console.log("Fetched all appointments:", response);
+      const response =
+        await this._fetchAppontMentSlotesService.fetchAllUserAppointments(
+          page,
+          limit
+        );
+
+      console.log("Fetched all appointments with pagination:", response);
 
       const grpcResponse: AllAppointmentsResponse = {
-        appointments: response,
+        appointments: response.appointments,
+        success: true,
+        message: "Appointments fetched successfully",
+        currentPage: response.currentPage,
+        totalPages: response.totalPages,
+        totalAppointments: response.totalAppointments,
+        limit: response.limit,
+        hasNextPage: response.hasNextPage,
+        hasPrevPage: response.hasPrevPage,
       };
 
       callback(null, grpcResponse);
@@ -124,7 +173,7 @@ export default class FetchAppointmentSlotsController
     }
   };
 
-  cancelUserAppointment  = async (
+  cancelUserAppointment = async (
     call: { request: CancelAppointmentRequest },
     callback: (
       error: grpc.ServiceError | null,
@@ -139,7 +188,7 @@ export default class FetchAppointmentSlotsController
       );
 
       const response =
-        await this.fetchAppontMentSlotesService.cancelUserAppointment(
+        await this._fetchAppontMentSlotesService.cancelUserAppointment(
           appointmentId
         );
 
@@ -152,4 +201,125 @@ export default class FetchAppointmentSlotsController
       };
     }
   };
+
+  createService = async (
+    call: { request: CreateServiceRequest },
+    callback: (
+      error: grpc.ServiceError | null,
+      response?: CreateServiceResponse
+    ) => void
+  ) => {
+    try {
+      const { name, description } = call.request;
+
+      // call repository
+      const success = await this._fetchAppontMentSlotesService.createService(
+        name,
+        description
+      );
+
+      // wrap into CreateServiceResponse
+      const response: CreateServiceResponse = { success };
+
+      callback(null, response);
+    } catch (error) {
+      console.error("Error cancelling appointment:", error);
+      const grpcError = {
+        code: grpc.status.INTERNAL,
+        message: (error as Error).message,
+      };
+    }
+  };
+
+  fetchService = async (
+    call: grpc.ServerUnaryCall<FetchServiceRequest, FetchServiceResponse>,
+    callback: grpc.sendUnaryData<FetchServiceResponse>
+  ) => {
+    try {
+      const services = await this._fetchAppontMentSlotesService.fetchService();
+
+      const response: FetchServiceResponse = {
+        services: services,
+        success: true,
+        message: "Services fetched successfully",
+      };
+
+      // Send successful response
+      callback(null, response);
+    } catch (error) {
+      console.error("Error fetching services:", error);
+
+      // Create gRPC error
+      const grpcError = {
+        name: "ServiceError",
+        message: (error as Error).message || "Failed to fetch services",
+        code: grpc.status.INTERNAL,
+        details: "Internal server error while fetching services",
+      };
+
+      // Send error response
+      // callback(grpcError, null);
+    }
+  };
+
+  deleteService = async (
+    call: { request: DeleteServiceRequest },
+    callback: (
+      error: grpc.ServiceError | null,
+      response?: CreateServiceResponse
+    ) => void
+  ) => {
+    try {
+      const { serviceId } = call.request;
+
+      const result = await this._fetchAppontMentSlotesService.deleteService(
+        serviceId
+      );
+
+      const response: CreateServiceResponse = {
+        success: result,
+      };
+
+      callback(null, response);
+    } catch (error) {
+      console.error("Error cancelling appointment:", error);
+      const grpcError = {
+        code: grpc.status.INTERNAL,
+        message: (error as Error).message,
+      };
+    }
+  };
+
+
+  editService = async (
+    call: { request: EditServiceRequest },
+    callback: (
+      error: grpc.ServiceError | null,
+      response?: CreateServiceResponse
+    ) => void
+  ) => {
+    try {
+      const { serviceId,name,description } = call.request;
+
+      const result = await this._fetchAppontMentSlotesService.editService(
+        serviceId,
+        name,
+        description
+      );
+
+      const response: CreateServiceResponse = {
+        success: result,
+      };
+
+      callback(null, response);
+    } catch (error) {
+      console.error("Error cancelling appointment:", error);
+      const grpcError = {
+        code: grpc.status.INTERNAL,
+        message: (error as Error).message,
+      };
+    }
+  };
+
+
 }

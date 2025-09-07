@@ -1,19 +1,54 @@
 import { IChatHandlingRepo } from '../interFace/chatHandlingRepoInterFace';
-import { Types } from 'mongoose';
+import { FilterQuery, SortOrder, Types } from 'mongoose';
 import Chat from '../../entities/meetSchema';
 import Message from '../../entities/messageSchema';
 import AppointmentModel from '../../entities/AppointmentModel';
 import { AppointmentUpdateResponse, ChatMessageDbResponse, ChatMessageStorageRequest, ConversationDbFetchResponse } from '../../doctorInterFace/IdoctorType';
 
+export interface Appointment {
+  id: string;
+  patientName: string;
+  doctorEmail: string;
+  patientPhone: string;
+  appointmentDate: string;
+  appointmentTime: string;
+  notes: string;
+  doctorName: string;
+  specialty: string;
+  patientEmail: string;
+  status: 'scheduled' | 'completed' | 'cancelled' | 'no-show';
+  message: string;
+  payment_method: 'online' | 'cash' | 'card';
+  paymentStatus: 'pending' | 'success' | 'failed' | 'refunded';
+  amount: string;
+  doctorAmount: string;
+  adminAmount: string;
+  userRefoundAmount: string;
+  userId: string;
+  doctorId: string;
+  Prescription: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface SearchParamss {
+  searchQuery: string;
+  sortBy: string;
+  sortDirection: 'asc' | 'desc';
+  role: string; 
+  page: number;
+  limit: number;
+}
 
 
-// interface DbResponse {
-//   success: boolean;
-//   message: string;
-//   messageId: any;
-//   conversationId: string;
-//   doctorId: string;
-// }
+export interface FilteringResponse {
+  appointments: Appointment[];
+  success: boolean;
+  message: string;
+  totalCount: number;
+  totalPages: number;
+  currentPage: number;
+}
 
 export default class ChatHandlingRepo  implements IChatHandlingRepo {
 
@@ -215,5 +250,137 @@ updateAppointmentAfterConsultation = async (
     };
   }
 };
+
+
+async filteringDoctorAppoinments(params: SearchParamss): Promise<FilteringResponse> {
+    try {
+      const {
+        searchQuery = '',
+        sortBy = 'createdAt',
+        sortDirection = 'desc',
+        page = 1,
+        limit = 50,
+        role = ''
+      } = params;
+
+      // Build search filter
+      const filter: FilterQuery<any> = {};
+      
+      // Add text search filter
+      if (searchQuery && searchQuery.trim()) {
+        const searchRegex = { $regex: searchQuery.trim(), $options: 'i' };
+        filter.$or = [
+          { patientName: searchRegex },
+          { doctorName: searchRegex },
+          { patientEmail: searchRegex },
+          { doctorEmail: searchRegex },
+          { specialty: searchRegex },
+          { patientPhone: searchRegex }
+        ];
+      }
+
+      // Add role-based filtering
+      if (role && role.trim()) {
+        const roleValue = role.trim().toLowerCase();
+        if (roleValue === 'doctor') {
+          filter.doctorEmail = { $exists: true, $ne: null };
+        } else if (roleValue === 'patient') {
+          filter.patientEmail = { $exists: true, $ne: null };
+        }
+      }
+
+      // Build sort object with validation
+      const validSortFields = [
+        'created_at', 
+        'updated_at', 
+        'appointmentDate', 
+        'patientName', 
+        'doctorName',
+        'createdAt',  
+        'updatedAt'
+      ];
+      let sortField = sortBy;
+      
+      // Map interface field names to MongoDB field names
+      if (sortBy === 'createdAt') sortField = 'created_at';
+      if (sortBy === 'updatedAt') sortField = 'updated_at';
+      
+      // Validate the field exists
+      if (!validSortFields.includes(sortField)) {
+        sortField = 'created_at';
+      }
+      
+      const sort: { [key: string]: SortOrder } = {};
+      sort[sortField] = sortDirection === 'asc' ? 1 : -1;
+
+      // Calculate pagination with validation
+      const validatedPage = Math.max(1, page);
+      const validatedLimit = Math.min(Math.max(1, limit), 100);
+      const skip = (validatedPage - 1) * validatedLimit;
+
+      // Execute query with error handling
+      const [appointmentsRaw, totalCount] = await Promise.all([
+        AppointmentModel.find(filter)
+          .sort(sort)
+          .skip(skip)
+          .limit(validatedLimit)
+          .lean()
+          .exec(),
+        AppointmentModel.countDocuments(filter).exec()
+      ]);
+
+      // Transform MongoDB documents to match Appointment interface
+      const appointments: Appointment[] = appointmentsRaw.map(doc => ({
+        id: doc._id?.toString() || '',
+        patientName: doc.patientName || '',
+        doctorEmail: doc.doctorEmail || '',
+        patientPhone: doc.patientPhone || '',
+        appointmentDate: doc.appointmentDate || '',
+        appointmentTime: doc.appointmentTime || '',
+        notes: doc.notes || '',
+        doctorName: doc.doctorName || '',
+        specialty: doc.specialty || '',
+        patientEmail: doc.patientEmail || '',
+        status: doc.status || 'scheduled',
+        message: doc.message || '',
+        payment_method: doc.payment_method || 'cash',
+        paymentStatus: doc.paymentStatus || 'pending',
+        amount: doc.amount?.toString() || '0',
+        doctorAmount: doc.doctorAmount || '0',
+        adminAmount: doc.adminAmount || '0',
+        userRefoundAmount: doc.userRefoundAmount || '0',
+        userId: doc.userId || '',
+        doctorId: doc.doctorId || '',
+        Prescription: doc.Prescription || '',
+        createdAt: doc.created_at ||new Date(),
+        updatedAt: doc.updated_at ||  new Date()
+      }));
+
+      const totalPages = Math.ceil(totalCount / validatedLimit);
+
+      return {
+        appointments,
+        success: true,
+        message: 'Appointments fetched successfully',
+        totalCount,
+        totalPages,
+        currentPage: validatedPage
+      };
+
+    } catch (error) {
+      console.error('Repository Error - filtering appointments:', error);
+      
+      // Return error response instead of throwing
+      return {
+        appointments: [],
+        success: false,
+        message: error instanceof Error ? error.message : 'Failed to filter appointments',
+        totalCount: 0,
+        totalPages: 0,
+        currentPage: params.page || 1
+      };
+    }
+  }
+
 
   }

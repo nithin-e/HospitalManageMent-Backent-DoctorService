@@ -152,14 +152,24 @@ grpcServer.addService(DoctorProto.DoctorService.service, {
 
     AfterTheConsultationUpdatingAppointMent:ChatHandlingController.updateAppointmentAfterConsultation,
 
+    filteringDoctorAppoinments:ChatHandlingController.filteringDoctorAppoinments,
+
     makingAddPrescription:StoreAppointmentSlotsController.CreatingPrescription,
 
     fetchingPrescription:StoreAppointmentSlotsController.fetchPrescription,
 
     doctorCancellingUserBookedAppointMent:StoreAppointmentSlotsController.doctorCancelAppointment,
+
+    addNewService:FetchAppontMentSlotesController.createService,
+
+    fetchService:FetchAppontMentSlotesController.fetchService,
+
+    deleteService:FetchAppontMentSlotesController.deleteService,
+
+    editService:FetchAppontMentSlotesController.editService,
 });
 
-//storeNotificationData
+//fectingUserAppointMents
 
 console.log('Services added to gRPC server');
 
