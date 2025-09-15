@@ -8,23 +8,23 @@ import cron from 'node-cron';
 import  {checkAppointments}  from './utility/cron-job';
 
 
-// import controllers
-import fetchAppontMentSlotesControllerr from '../src/controllerr/implementation/fetchAppontMentSlotesController'
-import storeAppointmentSlotsControllerr from "../src/controllerr/implementation/StoreAppointmentSlots_Controller"
-import chatHandlingController from '../src/controllerr/implementation/chatHandlingController';
+// import controllers - FIXED PATHS AND TYPOS
+import fetchAppontMentSlotesController from './controllerr/implementation/fetchAppontMentSlotesController'
+import storeAppointmentSlotsController from "./controllerr/implementation/StoreAppointmentSlots_Controller"
+import chatHandlingController from './controllerr/implementation/chatHandlingController';
 
 
 
-// import services
-import fetchAppontMentSlotesService from '../src/service/implementations/fetchAppontMentSlotesService'
-import storeAppointmentSlotsService from "../src/service/implementations/StoreAppointmentSlotsService";
-import chatHandlingServices from "../src/service/implementations/chatHandlingServices";
+// import services - FIXED PATHS
+import fetchAppontMentSlotesService from './service/implementations/fetchAppontMentSlotesService'
+import storeAppointmentSlotsService from "./service/implementations/StoreAppointmentSlotsService";
+import chatHandlingServices from "./service/implementations/chatHandlingServices";
 
 
-//import repo
-import fetchingAppontMentSlotesRepo from "../src/repositoriess/implementation/fetchingAppontMentSlotesRepo";
-import storeAppointmentSlotsRepo from "../src/repositoriess/implementation/StoreAppointmentSlots_Repo";
-import chatHandlingRepo from "../src/repositoriess/implementation/chatHandlingRepo";
+//import repo - FIXED PATHS AND TYPOS
+import fetchingAppontMentSlotesRepo from "./repositoriess/implementation/fetchingAppontMentSlotesRepo";
+import storeAppointmentSlotsRepo from "./repositoriess/implementation/StoreAppointmentSlots_Repo";
+import chatHandlingRepo from "./repositoriess/implementation/chatHandlingRepo";
 
 
 import axiosInstance from './axiousInstance';
@@ -40,13 +40,13 @@ const ChatHandlingController =new chatHandlingController(ChatHandlingServices)
 // Initialize dependency chain for fectingappointmentslotes
 const StoreAppointmentSlotsRepo=new storeAppointmentSlotsRepo()
 const StoreAppointmentSlotsService=new storeAppointmentSlotsService(StoreAppointmentSlotsRepo)
-const StoreAppointmentSlotsController=new storeAppointmentSlotsControllerr(StoreAppointmentSlotsService)
+const StoreAppointmentSlotsController=new storeAppointmentSlotsController(StoreAppointmentSlotsService)
 
 
 // Initialize dependency chain for fectingappointmentslotes
 const FetchingAppontMentSlotesRepo=new fetchingAppontMentSlotesRepo()
 const FetchAppontMentSlotesService=new fetchAppontMentSlotesService(FetchingAppontMentSlotesRepo)
-const FetchAppontMentSlotesController=new fetchAppontMentSlotesControllerr(FetchAppontMentSlotesService)
+const FetchAppontMentSlotesController=new fetchAppontMentSlotesController(FetchAppontMentSlotesService)
 
 
 

@@ -12,7 +12,6 @@ import {
   FetchAppointmentSlotsRequest,
   FetchAppointmentSlotsResponse,
   IAppointment,
-  MongoAppointment,
   MongoAppointmentt,
   SlotInfo,
   updateData,
@@ -21,9 +20,7 @@ import {
 import serviceModel, { IService } from "../../entities/serviceModel";
 import { BaseRepository } from "../../../../shared/repositories/baseRepository";
 
-// export interface AllAppointmentsResponse {
-//   appointments: IAppointment[];
-// }
+
 
 export default class fetchingAppontMentSloteRepo
   extends BaseRepository<IService>
@@ -37,10 +34,7 @@ export default class fetchingAppontMentSloteRepo
     request: FetchAppointmentSlotsRequest
   ): Promise<FetchAppointmentSlotsResponse> => {
     try {
-      console.log(
-        "Fetching appointment slots for email in repo:",
-        request.email
-      );
+      
 
       const appointmentSlots = await AppointmentSlot.find({
         doctorEmail: request.email,
