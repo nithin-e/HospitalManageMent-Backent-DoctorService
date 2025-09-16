@@ -227,7 +227,7 @@ export interface Appointment {
   message?: string;
   amount?: string;
   adminAmount?: string;
-  userRefoundAmount?:string;
+  userRefoundAmount?:string|null;
   doctorAmount?: string;
   paymentStatus?: string;
   payment_method?: string;

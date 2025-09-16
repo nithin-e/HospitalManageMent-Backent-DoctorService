@@ -11,7 +11,6 @@ import {
   RescheduleAppointmentRequest,
   RescheduleAppointmentResponse,
   Slot,
-  TimeSlot,
 } from "../../doctorInterFace/IdoctorType";
 import { generateRecurringDates } from "../../utility/generateRecurringDates";
 import { replicateTimeSlotsForDates } from "../../utility/replicateTimeSlotsForDates";

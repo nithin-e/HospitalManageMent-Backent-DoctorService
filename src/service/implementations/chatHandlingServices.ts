@@ -2,7 +2,6 @@ import chatHandlingRepository, {
   FilteringResponse,
   SearchParamss,
 } from "../../repositoriess/implementation/chatHandlingRepo";
-import * as grpc from "@grpc/grpc-js";
 import { IChatHandlingService } from "../interFace/chatHandlingServiceInterFace";
 import {
   AppointmentUpdateParams,

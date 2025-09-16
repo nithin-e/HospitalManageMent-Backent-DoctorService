@@ -12,13 +12,12 @@ import {
   FetchAppointmentSlotsRequest,
   FetchAppointmentSlotsResponse,
   IAppointment,
-  MongoAppointmentt,
   SlotInfo,
   updateData,
   UserAppointmentsResponse,
 } from "../../doctorInterFace/IdoctorType";
 import serviceModel, { IService } from "../../entities/serviceModel";
-import { BaseRepository } from "../../../../shared/repositories/baseRepository";
+import { BaseRepository } from "./baseRepo";
 
 
 
@@ -194,11 +193,16 @@ export default class fetchingAppontMentSloteRepo
       const hasNextPage = page < totalPages;
       const hasPrevPage = page > 1;
 
-      // Fetch paginated appointments
-      const appointments = (await AppointmentModel.find(query)
-        .sort({ appointmentDate: -1, appointmentTime: -1 })
-        .skip(skip)
-        .limit(limit)) as MongoAppointmentt[];
+     
+
+
+        // Remove the type assertion
+const appointments = await AppointmentModel.find(query)
+  .sort({ appointmentDate: -1, appointmentTime: -1 })
+  .skip(skip)
+  .limit(limit);
+
+
 
       if (!appointments || appointments.length === 0) {
         return {

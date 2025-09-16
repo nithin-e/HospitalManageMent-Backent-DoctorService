@@ -1,5 +1,5 @@
 import { IStoreAppointmentSlotsService } from "../interFace/StoreAppointmentSlotsInterFace";
-import StoreAppointmentSlots_Repo, {
+import  {
   CancelData,
   CancelResponse,
   FetchPrescriptionRequest,
@@ -11,7 +11,6 @@ import {
   AppointmentSlotsData,
   Cancelres,
   DbResponse,
-  FetchDoctorSlotsRequest,
   FetchDoctorSlotsResponse,
   RescheduleAppointmentRequest,
   RescheduleAppointmentResponse,
