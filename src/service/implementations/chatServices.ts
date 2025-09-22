@@ -1,8 +1,4 @@
-import chatHandlingRepository, {
-  FilteringResponse,
-  SearchParamss,
-} from "../../repositoriess/implementation/chatHandlingRepo";
-import { IChatHandlingService } from "../interFace/chatHandlingServiceInterFace";
+import { IChatHandlingService } from "../interFace/IChatHandlingService";
 import {
   AppointmentUpdateParams,
   AppointmentUpdateResponse,
@@ -10,9 +6,18 @@ import {
   ChatMessageStorageRequest,
   ConversationFetchRequest,
   ConversationServiceFetchResponse,
-} from "../../doctorInterFace/IdoctorType";
-import { IChatHandlingRepo } from "../../repositoriess/interFace/chatHandlingRepoInterFace";
+  FilteringResponse,
+  SearchParam,
+} from "../../interfaces/Doctor.interface";
+import { IChatHandlingRepo } from "../../repositories/interFace/IChatRepository";
 
+/**
+ * ChatHandlingService
+ *
+ * Service layer responsible for handling chat-related business logic
+ * such as storing messages, fetching conversations, updating appointments,
+ * and filtering doctor appointments.
+ */
 export default class ChatHandlingService implements IChatHandlingService {
   private _chatHandlingRepo: IChatHandlingRepo;
 
@@ -20,13 +25,19 @@ export default class ChatHandlingService implements IChatHandlingService {
     this._chatHandlingRepo = chatHandlingRepository;
   }
 
+  /**
+   * Stores a chat message into the database.
+   *
+   * @param messageData - message details including sender, receiver, and content
+   * @returns Promise resolving with service response containing success status,
+   *          messageId, conversationId, and doctorId
+   */
   storeMessage = async (
     messageData: ChatMessageStorageRequest
   ): Promise<ChatMessageServiceResponse> => {
     try {
       console.log("Service layer received message data:", messageData);
 
-      // Call repository layer
       const dbResponse = await this._chatHandlingRepo.storeMessage(messageData);
 
       return {
@@ -51,13 +62,18 @@ export default class ChatHandlingService implements IChatHandlingService {
     }
   };
 
+  /**
+   * Fetches conversations between a user and a doctor.
+   *
+   * @param messageData - contains userId and doctorId
+   * @returns Promise resolving with conversations list and success status
+   */
   fetchConversations = async (
     messageData: ConversationFetchRequest
   ): Promise<ConversationServiceFetchResponse> => {
     try {
       const { userId, doctorId } = messageData;
 
-      // Call repository layer
       const dbResponse = await this._chatHandlingRepo.fetchConversations(
         userId,
         doctorId
@@ -81,11 +97,16 @@ export default class ChatHandlingService implements IChatHandlingService {
     }
   };
 
+  /**
+   * Updates an appointment record after consultation ends.
+   *
+   * @param params - appointment update parameters including appointmentId and endedBy
+   * @returns Promise resolving with update result (success/failure)
+   */
   updateAppointmentAfterConsultation = async (
     params: AppointmentUpdateParams
   ): Promise<AppointmentUpdateResponse> => {
     try {
-      // Call repository layer
       const dbResponse =
         await this._chatHandlingRepo.updateAppointmentAfterConsultation(
           params.appointmentId,
@@ -105,6 +126,12 @@ export default class ChatHandlingService implements IChatHandlingService {
     }
   };
 
+  /**
+   * Filters doctor appointments based on query, sorting, pagination, and role.
+   *
+   * @param params - filtering parameters including searchQuery, sortBy, sortDirection, page, limit, and role
+   * @returns Promise resolving with filtered appointments list and pagination details
+   */
   async filteringDoctorAppoinments(params: {
     searchQuery?: string;
     sortBy?: string;
@@ -114,7 +141,6 @@ export default class ChatHandlingService implements IChatHandlingService {
     role?: string;
   }): Promise<FilteringResponse> {
     try {
-      // Destructure with defaults
       const {
         searchQuery = "",
         sortBy = "createdAt",
@@ -124,7 +150,6 @@ export default class ChatHandlingService implements IChatHandlingService {
         role = "",
       } = params;
 
-      // Validate and sanitize input parameters
       const validatedPage = Math.max(1, page);
       const validatedLimit = Math.min(Math.max(1, limit), 100);
       const validatedSortDirection =
@@ -132,8 +157,7 @@ export default class ChatHandlingService implements IChatHandlingService {
           ? sortDirection
           : "desc";
 
-      // Prepare parameters object for repository
-      const repoParams: SearchParamss = {
+      const repoParams: SearchParam = {
         searchQuery: searchQuery.trim(),
         sortBy: sortBy.trim(),
         sortDirection: validatedSortDirection,
@@ -144,7 +168,6 @@ export default class ChatHandlingService implements IChatHandlingService {
 
       console.log("Service Layer - Processing params:", repoParams);
 
-      // Call repository layer
       const result = await this._chatHandlingRepo.filteringDoctorAppoinments(
         repoParams
       );

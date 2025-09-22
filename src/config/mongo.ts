@@ -1,24 +1,36 @@
-import dotenv from 'dotenv'
 import mongoose from 'mongoose'
 
-dotenv.config()
-
-const connectDB = async (): Promise<void> => {
+const connectDB = async (): Promise<boolean> => {
     try {
-        const MONGO_URL = process.env.NODE_ENV === 'dev' ? process.env.MONGO_URL_DEV : process.env.MONGO_URL_PRO
-        console.log("Using MongoDB URL:", MONGO_URL);
+        console.log("Attempting to connect to MongoDB...");
+        
+        // Debug: Log all relevant environment variables
+        console.log("NODE_ENV:", process.env.NODE_ENV);
+        console.log("MONGO_URL_DEV:", process.env.MONGO_URL_DEV);
+        
+        // Get environment variables (these come from Docker Compose)
+        const NODE_ENV = process.env.NODE_ENV || 'dev';
+        let MONGO_URL: string;
+        
+        if (NODE_ENV === 'dev') {
+            MONGO_URL = process.env.MONGO_URL_DEV || 'mongodb://mongo:27017/hospital_management_dev';
+        } else {
+            MONGO_URL = process.env.MONGO_URL_PROD || 'mongodb://mongo:27017/hospital_management_prod';
+        }
+            
+        console.log("Attempting to connect to MongoDB URL:", MONGO_URL);
        
         if (!MONGO_URL) {
+            console.error("Available MONGO environment variables:", Object.keys(process.env).filter(key => key.includes('MONGO')));
             throw new Error("MONGO_URL is not defined in environment variables.")
         }
-        
+            
         await mongoose.connect(MONGO_URL)
-        console.log("MongoDB connection successful in doctor service");
-        return; // Successfully connected
+        console.log("MongoDB connection successful");
+        return true;
     } catch (error) {
         console.error('Error connecting to MongoDB:', error)
-        // Either re-throw the error or exit the process
-        process.exit(1); // Exit with error code
+        return false;
     }
 }
 

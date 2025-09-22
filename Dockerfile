@@ -1,25 +1,35 @@
-FROM node:20-alpine
+# ----------- Build Stage -----------
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy package.json & install deps
-COPY DoctorService/package*.json ./DoctorService/
-RUN cd DoctorService && npm install
+# Copy only package files first for caching
+COPY package*.json ./
 
-# Copy service + shared folder into image
-COPY DoctorService ./DoctorService
-COPY shared ./shared
+# Install all dependencies (including devDependencies for build)
+RUN npm install
 
-WORKDIR /app/DoctorService
+# Copy the rest of the source code
+COPY . .
 
 # Build TypeScript
 RUN npm run build
 
-# Copy proto files
-RUN mkdir -p "dist/DoctorService/src/proto" && \
-    cp -r src/proto/* "dist/DoctorService/src/proto/"
 
-VOLUME ["/opt/shared-baserepo"]
+# ----------- Production Stage -----------
+FROM node:20-alpine AS runner
+
+WORKDIR /app
+
+# Copy only package files for installing prod dependencies
+COPY package*.json ./
+
+RUN npm install --omit=dev
+
+COPY --from=builder /app/dist ./dist
+
+
 
 EXPOSE 7000
-CMD ["node", "dist/DoctorService/src/server.js"]
+
+CMD ["node", "dist/server.js"]

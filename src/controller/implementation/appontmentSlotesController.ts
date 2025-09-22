@@ -11,19 +11,12 @@ import {
   EditServiceRequest,
   FetchAppointmentSlotsRequest,
   FetchAppointmentSlotsResponse,
+  FetchServiceRequest,
+  FetchServiceResponse,
   UserAppointmentsRequest,
   UserAppointmentsResponse,
-} from "../../doctorInterFace/IdoctorType";
-import { IFetchAppointmentSlotsService } from "../../service/interFace/fetchAppontMentSlotesInterFace";
-import { IService } from "../../entities/serviceModel";
-
-interface FetchServiceRequest {}
-
-interface FetchServiceResponse {
-  services: IService[];
-  success?: boolean;
-  message?: string;
-}
+} from "../../interfaces/Doctor.interface";
+import { IFetchAppointmentSlotsService } from "../../service/interFace/IFetchAppontMentSlotes";
 
 export default class FetchAppointmentSlotsController {
   private _fetchAppontMentSlotesService: IFetchAppointmentSlotsService;
@@ -104,7 +97,7 @@ export default class FetchAppointmentSlotsController {
 
       // Validate pagination parameters
       const validatedPage = Math.max(1, page);
-      const validatedLimit = Math.min(Math.max(1, limit), 100); // Max 100 items per page
+      const validatedLimit = Math.min(Math.max(1, limit), 100);
 
       const response =
         await this._fetchAppontMentSlotesService.fetchUserAppointments(
@@ -290,7 +283,6 @@ export default class FetchAppointmentSlotsController {
     }
   };
 
-
   editService = async (
     call: { request: EditServiceRequest },
     callback: (
@@ -299,7 +291,7 @@ export default class FetchAppointmentSlotsController {
     ) => void
   ) => {
     try {
-      const { serviceId,name,description } = call.request;
+      const { serviceId, name, description } = call.request;
 
       const result = await this._fetchAppontMentSlotesService.editService(
         serviceId,
@@ -320,6 +312,4 @@ export default class FetchAppointmentSlotsController {
       };
     }
   };
-
-
 }

@@ -1,101 +1,46 @@
 import AppointmentSlot from "../../entities/storeAppointmentSlot_schema";
 import AppointmentModel from "../../entities/AppointmentModel";
-import { IAppointmentSlotsRepository } from "../interFace/StoreAppointmentSlots_RepoInterFace";
+import { IAppointmentSlotsRepository } from "../interFace/IStoreAppointmentSlotsRepository";
 import Prescription from "../../entities/PrescriptionModel";
 import {
+  appointmentaData,
   AppointmentSlotDocument,
   AppointmentSlotsData,
+  CancelData,
   Cancelres,
+  CancelResponse,
   DbResponse,
   FetchDoctorSlotsResponse,
+  FetchPrescriptionRequest,
+  FetchPrescriptionResponse,
+  PrescriptionData,
+  PrescriptionResponse,
   RescheduleAppointmentRequest,
   RescheduleAppointmentResponse,
   Slot,
-} from "../../doctorInterFace/IdoctorType";
+} from "../../interfaces/Doctor.interface";
 import { generateRecurringDates } from "../../utility/generateRecurringDates";
 import { replicateTimeSlotsForDates } from "../../utility/replicateTimeSlotsForDates";
 import mongoose from "mongoose";
-import { appointmentaData } from "../../controllerr/implementation/StoreAppointmentSlots_Controller";
+import {
+  convertTo12HourFormat,
+  convertToDbDateFormat,
+} from "../../utility/timeFormatter";
 
-const convertTo12HourFormat = (time24: any): string => {
-  try {
-    const [hours, minutes] = time24.split(":");
-    const hour = parseInt(hours, 10);
-    const minute = minutes || "00";
-
-    if (hour === 0) {
-      return `12:${minute} AM`;
-    } else if (hour < 12) {
-      return `${hour}:${minute} AM`;
-    } else if (hour === 12) {
-      return `12:${minute} PM`;
-    } else {
-      return `${hour - 12}:${minute} PM`;
-    }
-  } catch (error) {
-    console.error("Error converting time format:", error);
-    return time24; // Return original if conversion fails
-  }
-};
-
-function convertToDbDateFormat(dateString: string): string {
-  try {
-    // Convert "June 15, 2025" to "2025-06-15"
-    const date = new Date(dateString);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  } catch (error) {
-    console.error("Date conversion error:", error);
-    return dateString; // Return original if conversion fails
-  }
-}
-
-export interface CancelData {
-  time: string;
-  date: string;
-  email: string;
-}
-
-export interface CancelResponse {
-  success: boolean;
-  message: string;
-  error?: string;
-}
-
-export interface PrescriptionData {
-  doctorId: string;
-  patientId: string;
-  appointmentId: string;
-  prescriptionDetails: string;
-  date: string;
-  time: string;
-}
-
-export interface PrescriptionResponse {
-  success: boolean;
-}
-
-export interface FetchPrescriptionRequest {
-  doctorId: string;
-  userIdd: string;
-  appointmentId: string;
-  date: string;
-  time: string;
-}
-
-export interface FetchPrescriptionResponse {
-  prescriptionDetails: string;
-  date: string;
-  time: string;
-  patientEmail: string | null;
-  doctorEmail: string | null;
-}
+/**
+ * Repository layer for managing appointment slots, cancellations,
+ * rescheduling, and prescriptions.
+ *
+ * Handles all database interactions with Mongoose models.
+ */
 
 export default class FetchNotificationRepo
   implements IAppointmentSlotsRepository
 {
+  /**
+   * Store appointment slots (create or update depending on action).
+   */
+
   storeAppointmentSlots = async (
     appointmentData: AppointmentSlotsData
   ): Promise<DbResponse> => {
@@ -118,6 +63,9 @@ export default class FetchNotificationRepo
     }
   };
 
+  /**
+   * Creates new appointment slots for a doctor.
+   */
   createAppointmentSlots = async (appointmentData: AppointmentSlotsData) => {
     try {
       const {
@@ -129,27 +77,14 @@ export default class FetchNotificationRepo
         recurring_months = 6,
       } = appointmentData;
 
-      console.log(
-        "plz check the appoinment data inside the repository layer;",
-        appointmentData
-      );
-
       let allTimeSlots = [...time_slots];
       let allSelectedDates = [...selected_dates];
 
-      console.log("check this allTimeSlots", allTimeSlots);
-      console.log("check this allSelectedDates", allSelectedDates);
-
       if (date_range === "oneWeek") {
-        console.log(
-          `🔄 Creating recurring slots for the next ${recurring_months} months`
-        );
-
         const recurringDates = generateRecurringDates(
           selected_dates,
           recurring_months
         );
-        console.log(`📅 Generated ${recurringDates.length} recurring dates`);
 
         const recurringTimeSlots = replicateTimeSlotsForDates(
           time_slots,
@@ -182,10 +117,6 @@ export default class FetchNotificationRepo
         }
       }
 
-      console.log(
-        `💾 Attempting to insert ${appointmentSlots.length} appointment slots`
-      );
-
       let insertedCount = 0;
 
       try {
@@ -193,13 +124,8 @@ export default class FetchNotificationRepo
           ordered: false,
         });
         insertedCount = result.length;
-        console.log(
-          "✅ Successfully inserted appointment slots:",
-          insertedCount
-        );
       } catch (err) {
         console.error("Error inserting appointment slots:", err);
-      
       }
 
       return {
@@ -216,6 +142,9 @@ export default class FetchNotificationRepo
     }
   };
 
+  /**
+   * Updates (removes or creates new) appointment slots for a doctor.
+   */
   updateAppointmentSlots = async (appointmentData: any) => {
     try {
       const { doctor_email, removed_slot_ids, new_time_slots } =
@@ -227,15 +156,13 @@ export default class FetchNotificationRepo
       let updatedCount = 0;
       let datesAffected = new Set<string>();
 
-      // Remove slots that are marked for deletion
       if (removed_slot_ids && removed_slot_ids.length > 0) {
         console.log("Removing slot IDs:", removed_slot_ids);
 
-        // Only remove slots that are not booked and belong to the doctor
         const deleteResult = await AppointmentSlot.deleteMany({
           _id: { $in: removed_slot_ids },
           doctorEmail: doctor_email,
-          isBooked: false, // Safety: Only delete unbooked slots
+          isBooked: false,
         });
 
         removedCount = deleteResult.deletedCount || 0;
@@ -250,8 +177,6 @@ export default class FetchNotificationRepo
 
       if (new_time_slots && new_time_slots.length > 0) {
         console.log("Creating new slots:", new_time_slots.length);
-
-        // Prepare new slot documents
 
         const newSlots = new_time_slots.map((slot: any) => ({
           doctorEmail: doctor_email,
@@ -282,7 +207,6 @@ export default class FetchNotificationRepo
         }
       }
 
-      // Get all unique dates for the doctor after the update
       const allSlots = await AppointmentSlot.find(
         { doctorEmail: doctor_email },
         { date: 1, _id: 0 }
@@ -294,7 +218,7 @@ export default class FetchNotificationRepo
         slots_created: 0,
         slots_removed: removedCount,
         slots_updated: updatedCount,
-        dates: allSlots.sort(), // Return sorted dates
+        dates: allSlots.sort(),
       };
     } catch (error) {
       console.error("Error in updateAppointmentSlots:", error);
@@ -302,6 +226,9 @@ export default class FetchNotificationRepo
     }
   };
 
+  /**
+   * Fetches all slots for a doctor.
+   */
   async fetchDoctorSlots(email: string): Promise<FetchDoctorSlotsResponse> {
     try {
       const doctorSlots: AppointmentSlotDocument[] = await AppointmentSlot.find(
@@ -311,7 +238,6 @@ export default class FetchNotificationRepo
       );
 
       if (!doctorSlots || doctorSlots.length === 0) {
-        console.log("Zero slots found for doctor:", email);
         return {
           success: false,
           message: "No appointment slots found for this doctor",
@@ -333,8 +259,6 @@ export default class FetchNotificationRepo
         ...(slot.patientEmail && { patientEmail: slot.patientEmail }),
       }));
 
-      console.log("the doctoe have something plz check");
-
       return {
         success: true,
         message: "Doctor appointment slots retrieved successfully",
@@ -348,18 +272,16 @@ export default class FetchNotificationRepo
     }
   }
 
-  // Repository layer: Processing reschedule data
+  /**
+   * Reschedules an appointment for a user.
+   */
   rescheduleAppointment = async (
     rescheduleData: RescheduleAppointmentRequest
   ): Promise<RescheduleAppointmentResponse> => {
     try {
-      console.log("Processing reschedule data:", rescheduleData);
-
-      // Extract data
       const { patientEmail, doctorEmail, originalSlot, newSlot, action } =
         rescheduleData;
 
-      console.log("Step 1: Deleting original slot...");
       const deleteSlotResult = await AppointmentSlot.findByIdAndDelete(
         originalSlot.id
       );
@@ -367,9 +289,7 @@ export default class FetchNotificationRepo
       if (!deleteSlotResult) {
         throw new Error("Original slot not found or could not be deleted");
       }
-      console.log("Original slot deleted successfully:", deleteSlotResult);
 
-      console.log("Step 2: Finding user appointment...");
       const userAppointment = await AppointmentModel.findOne({
         patientEmail: patientEmail,
         appointmentTime: originalSlot.time,
@@ -379,10 +299,7 @@ export default class FetchNotificationRepo
       if (!userAppointment) {
         throw new Error("User appointment not found");
       }
-      console.log("User appointment found:", userAppointment);
 
-      // Step 3: Update the appointment with new slot time and add reschedule message
-      console.log("Step 3: Updating appointment...");
       const updateResult = await AppointmentModel.findByIdAndUpdate(
         userAppointment._id,
         {
@@ -402,9 +319,6 @@ export default class FetchNotificationRepo
         throw new Error("Failed to update user appointment");
       }
 
-      console.log("Appointment updated successfully:", updateResult);
-
-      // Step 4: Create/update the new slot
       let newSlotResult;
       const existingSlot = await AppointmentSlot.findOne({
         doctorEmail: doctorEmail,
@@ -436,8 +350,6 @@ export default class FetchNotificationRepo
         });
       }
 
-      console.log("New slot processed successfully:", newSlotResult);
-
       return {
         success: true,
         message: "Appointment rescheduled successfully",
@@ -458,6 +370,9 @@ export default class FetchNotificationRepo
     }
   };
 
+  /**
+   * Cancels an appointment from user side.
+   */
   cancelAppointmentByUser = async (
     cancelData: CancelData
   ): Promise<CancelResponse> => {
@@ -517,7 +432,7 @@ export default class FetchNotificationRepo
         },
         {
           isBooked: false,
-          patientEmail: "", // Clear patient email
+          patientEmail: "",
           updatedAt: new Date(),
         },
         { new: true }
@@ -549,6 +464,9 @@ export default class FetchNotificationRepo
     }
   };
 
+  /**
+   * Creates a prescription for an appointment.
+   */
   createPrescription = async (
     prescriptionData: PrescriptionData
   ): Promise<PrescriptionResponse> => {
@@ -583,6 +501,10 @@ export default class FetchNotificationRepo
       throw error;
     }
   };
+
+  /**
+   * Fetches a prescription by appointmentId.
+   */
 
   fetchPrescription = async (
     prescriptionData: FetchPrescriptionRequest
@@ -622,6 +544,9 @@ export default class FetchNotificationRepo
     }
   };
 
+  /**
+   * Cancels an appointment from doctor side.
+   */
   cancelAppointmentByDoctor = async (
     appointmentData: appointmentaData
   ): Promise<Cancelres> => {
@@ -630,7 +555,7 @@ export default class FetchNotificationRepo
         "check this data inside the reposotory layr",
         appointmentData
       );
-      // implement the logic here
+
       const appointment = await AppointmentModel.findOne({
         patientEmail: appointmentData.patientEmail,
         doctorId: appointmentData.doctor_id,

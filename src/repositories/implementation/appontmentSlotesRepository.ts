@@ -1,6 +1,6 @@
 import AppointmentSlot from "../../entities/storeAppointmentSlot_schema";
 import AppointmentModel from "../../entities/AppointmentModel";
-import { IAppointmentRepository } from "../interFace/fetchingAppontMentSlotesRepoInterFace";
+import { IAppointmentRepository } from "../interFace/IAppontMentSlotesRepository";
 import {
   AllAppointmentsResponse,
   Appointment,
@@ -15,11 +15,9 @@ import {
   SlotInfo,
   updateData,
   UserAppointmentsResponse,
-} from "../../doctorInterFace/IdoctorType";
+} from "../../interfaces/Doctor.interface";
 import serviceModel, { IService } from "../../entities/serviceModel";
 import { BaseRepository } from "./baseRepo";
-
-
 
 export default class fetchingAppontMentSloteRepo
   extends BaseRepository<IService>
@@ -33,14 +31,11 @@ export default class fetchingAppontMentSloteRepo
     request: FetchAppointmentSlotsRequest
   ): Promise<FetchAppointmentSlotsResponse> => {
     try {
-      
-
       const appointmentSlots = await AppointmentSlot.find({
         doctorEmail: request.email,
       });
 
       if (!appointmentSlots || appointmentSlots.length === 0) {
-        console.log("No appointment slots found for this doctor");
         return {
           success: false,
           slots_created: 0,
@@ -49,7 +44,6 @@ export default class fetchingAppontMentSloteRepo
         };
       }
 
-      // Type for grouped slots
       interface SlotsByDateType {
         [date: string]: SlotInfo[];
       }
@@ -77,10 +71,6 @@ export default class fetchingAppontMentSloteRepo
           is_booked: slot.is_booked,
         })),
       }));
-
-      console.log(
-        `In the repositories: Found ${appointmentSlots.length} slots across ${uniqueDates.length} dates`
-      );
 
       return {
         success: true,
@@ -115,15 +105,11 @@ export default class fetchingAppontMentSloteRepo
         throw new Error("This appointment slot is already booked");
       }
 
-      // Update the slot status
       appointmentSlot.isBooked = true;
       appointmentSlot.patientEmail = appointmentData.userEmail;
       appointmentSlot.updatedAt = new Date();
       await appointmentSlot.save();
 
-      //  const appointmentLimit= await AppointmentModel.find{()}
-
-      // Create new appointment record
       const newAppointment = new AppointmentModel({
         patientName: appointmentData.patientName,
         doctorEmail: appointmentData.patientEmail,
@@ -166,10 +152,6 @@ export default class fetchingAppontMentSloteRepo
     limit: number = 3
   ): Promise<UserAppointmentsResponse> => {
     try {
-      console.log("Fetching appointments with email in repo:", email);
-      console.log("Pagination params - Page:", page, "Limit:", limit);
-
-      // Calculate skip value for pagination
       const skip = (page - 1) * limit;
 
       const query = {
@@ -185,24 +167,17 @@ export default class fetchingAppontMentSloteRepo
         ],
       };
 
-      console.log("Query filter:", query);
-
       const totalAppointments = await AppointmentModel.countDocuments(query);
 
       const totalPages = Math.ceil(totalAppointments / limit);
       const hasNextPage = page < totalPages;
       const hasPrevPage = page > 1;
 
-     
-
-
-        // Remove the type assertion
-const appointments = await AppointmentModel.find(query)
-  .sort({ appointmentDate: -1, appointmentTime: -1 })
-  .skip(skip)
-  .limit(limit);
-
-
+      // Remove the type assertion
+      const appointments = await AppointmentModel.find(query)
+        .sort({ appointmentDate: -1, appointmentTime: -1 })
+        .skip(skip)
+        .limit(limit);
 
       if (!appointments || appointments.length === 0) {
         return {
@@ -242,7 +217,6 @@ const appointments = await AppointmentModel.find(query)
             doctorAmount: appointment.doctorAmount || "",
           };
 
-          // Add optional fields if they exist
           if (appointment.message)
             baseAppointment.message = appointment.message;
           if (appointment.Prescription)
@@ -251,8 +225,6 @@ const appointments = await AppointmentModel.find(query)
           return baseAppointment;
         }
       );
-
-      console.log(`Formatted appointments for page ${page}:`, totalPages);
 
       return {
         appointments: formattedAppointments,
@@ -386,15 +358,12 @@ const appointments = await AppointmentModel.find(query)
       return await this.find({});
     } catch (error) {
       console.error("Error fetching services from repository:", error);
-      throw error; // Re-throw the error so calling code can handle it
+      throw error;
     }
   };
 
   deleteService = async (serviceId: string): Promise<boolean> => {
     try {
-      console.log("Deleting service with Id:", serviceId);
-
-      // Use repository method to delete
       const deletedService = await this.deleteById(serviceId);
 
       if (!deletedService) {
@@ -409,49 +378,39 @@ const appointments = await AppointmentModel.find(query)
     }
   };
 
+  editService = async (
+    serviceId: string,
+    name?: string,
+    description?: string
+  ): Promise<boolean> => {
+    try {
+      const existingService = await serviceModel.findById(serviceId);
 
-editService = async (serviceId: string, name?: string, description?: string): Promise<boolean> => {
-  try {
-    console.log("While editing service:", serviceId, name, description);
-
-  
-    const existingService = await serviceModel.findById(serviceId);
-    
-    console.log('Existing service found:', existingService);
-    
-  
-    if (!existingService) {
-      console.error("Service not found with ID:", serviceId);
-      return false;
-    }
-
-
-    const updateData: updateData = {};
-   
-
-  
-    const updatedService = await serviceModel.findByIdAndUpdate(
-      serviceId,
-      updateData,
-      { 
-        new: true, 
-        runValidators: true 
+      if (!existingService) {
+        console.error("Service not found with ID:", serviceId);
+        return false;
       }
-    );
 
-    if (!updatedService) {
-      console.error("Failed to update service");
+      const updateData: updateData = {};
+
+      const updatedService = await serviceModel.findByIdAndUpdate(
+        serviceId,
+        updateData,
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
+
+      if (!updatedService) {
+        console.error("Failed to update service");
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Error editing service in repository:", error);
       return false;
     }
-
-    console.log("Service updated successfully:", updatedService);
-    return true;
-
-  } catch (error) {
-    console.error("Error editing service in repository:", error);
-    return false;
-  }
-}
-
-
+  };
 }

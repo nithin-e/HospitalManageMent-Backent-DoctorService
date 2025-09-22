@@ -1,4 +1,4 @@
-import { IFetchAppointmentSlotsService } from "../interFace/fetchAppontMentSlotesInterFace";
+import { IFetchAppointmentSlotsService } from "../interFace/IFetchAppontMentSlotes";
 import {
   AllAppointmentsResponse,
   AppointmentRequest,
@@ -7,12 +7,10 @@ import {
   CancelAppointmentResponse,
   FetchAppointmentSlotsRequest,
   FetchAppointmentSlotsResponse,
-  IAppointment,
   UserAppointmentsResponse,
-} from "../../doctorInterFace/IdoctorType";
-import { IAppointmentRepository } from "../../repositoriess/interFace/fetchingAppontMentSlotesRepoInterFace";
+} from "../../interfaces/Doctor.interface";
+import { IAppointmentRepository } from "../../repositories/interFace/IAppontMentSlotesRepository";
 import { IService } from "../../entities/serviceModel";
-import { response } from "express";
 
 export default class fetchingAppontMentSlotesService
   implements IFetchAppointmentSlotsService
@@ -132,10 +130,10 @@ fetchAllUserAppointments = async (
           description
         );
 
-      return response; // ✅ success
+      return response; 
     } catch (error) {
       console.error("Error creating service:", error);
-      return false; // ✅ failure
+      return false; 
     }
   };
 

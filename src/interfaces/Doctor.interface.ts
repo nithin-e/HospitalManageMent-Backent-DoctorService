@@ -1,138 +1,126 @@
 import mongoose, { ObjectId, Types } from "mongoose";
+import { IService } from "../entities/serviceModel";
 
 // Individual time slot interface
- export interface TimeSlot {
-    id?: string;
-    start_time: string;
-    end_time: string;
-    is_available?: boolean;
-    appointment_id?: string;
-  }
-  
-  // Time slots for a specific date
-  interface DateTimeSlots {
-    slots: TimeSlot[];
-    date: string;
-  }
-  
-  // Date range options
-  type DateRange = 'oneWeek' | 'twoWeeks' | 'oneMonth' | 'custom';
-  
-  // Action types for slot management
-  type SlotAction = 'create' | 'update' | 'delete' | 'bulk_create';
-  
+export interface TimeSlot {
+  id?: string;
+  start_time: string;
+  end_time: string;
+  is_available?: boolean;
+  appointment_id?: string;
+}
 
-  
-  // Main appointment data interface
-   export interface AppointmentSlotsData {
-    selected_dates: string[];
-    time_slots: DateTimeSlots[];
-    removed_slot_ids: string[];
-    remaining_slots: TimeSlot[];
-    new_time_slots: TimeSlot[];
-    doctor_email: string;
-    date_range: DateRange;
-    action: SlotAction;
-    start_time: string;
-    end_time: string;
-    slot_duration: number; // in minutes
-    include_rest_periods: boolean;
-    create_recurring:boolean;
-    recurring_months:number;
+// Time slots for a specific date
+interface DateTimeSlots {
+  slots: TimeSlot[];
+  date: string;
+}
 
-  }
-  
+// Date range options
+type DateRange = "oneWeek" | "twoWeeks" | "oneMonth" | "custom";
 
- export interface GrpcCall {
-    request: AppointmentSlotsData;
-    metadata?: string|number|boolean;
-    cancelled?: boolean;
-  }
+// Action types for slot management
+type SlotAction = "create" | "update" | "delete" | "bulk_create";
 
-  export interface DbResponse {
-    success: boolean;
-    message: string;
-    slots_created: number;
-    dates: string[];
-    slots_removed: number;
-    slots_updated: number;
-  }
+// Main appointment data interface
+export interface AppointmentSlotsData {
+  selected_dates: string[];
+  time_slots: DateTimeSlots[];
+  removed_slot_ids: string[];
+  remaining_slots: TimeSlot[];
+  new_time_slots: TimeSlot[];
+  doctor_email: string;
+  date_range: DateRange;
+  action: SlotAction;
+  start_time: string;
+  end_time: string;
+  slot_duration: number; // in minutes
+  include_rest_periods: boolean;
+  create_recurring: boolean;
+  recurring_months: number;
+}
 
+export interface GrpcCall {
+  request: AppointmentSlotsData;
+  metadata?: string | number | boolean;
+  cancelled?: boolean;
+}
 
-  interface GrpcError {
-    code: number;
-    message: string;
-  }
- export interface GrpcCallback {
-    (error: GrpcError | null, response: DbResponse | null): void;
-  }
+export interface DbResponse {
+  success: boolean;
+  message: string;
+  slots_created: number;
+  dates: string[];
+  slots_removed: number;
+  slots_updated: number;
+}
 
-  export interface GrpcCallbackk {
-    (error:GrpcError | null, response:FetchDoctorSlotsResponse|null):void
-  }
+interface GrpcError {
+  code: number;
+  message: string;
+}
+export interface GrpcCallback {
+  (error: GrpcError | null, response: DbResponse | null): void;
+}
 
+export interface GrpcCallbackk {
+  (error: GrpcError | null, response: FetchDoctorSlotsResponse | null): void;
+}
 
+export interface DoctorEmailRequest {
+  email: string;
+}
 
+export interface AppointmentSlot {
+  id: string;
+  date: string;
+  time: string;
+  is_booked: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  patientEmail?: string;
+}
 
-  export interface DoctorEmailRequest {
-    email: string;
-  }
-  
+export interface FetchDoctorSlotsResponse {
+  success: boolean;
+  message: string;
+  slots_created: number;
+  dates: string[];
+  slots: any;
+}
 
-  export interface AppointmentSlot {
-    id: string; 
-    date: string;
-    time: string; 
-    is_booked: boolean;
-    createdAt: Date;
-    updatedAt: Date;
-    patientEmail?: string; 
-  }
-  
-  export interface FetchDoctorSlotsResponse {
-    success: boolean;
-    message: string;
-    slots_created: number;
-    dates: string[]; 
-    slots:any 
-  }
-
-
-  export interface Slot {
-    id: string;
-    date: string;
-    time: string;
-    is_booked: boolean;
-    createdAt: Date;
-    updatedAt: Date;
-    patientEmail?: string;
+export interface Slot {
+  id: string;
+  date: string;
+  time: string;
+  is_booked: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  patientEmail?: string;
 }
 
 export interface FetchDoctorSlotsRequest {
-    email: string;
+  email: string;
 }
-
-
 
 export interface AppointmentSlotDocument extends mongoose.Document {
-    doctorEmail: string;
-    date: string;
-    time: string;
-    isBooked: boolean;
-    createdAt: Date;
-    updatedAt: Date;
-    patientEmail?: string;
-    _id: mongoose.Types.ObjectId;
+  doctorEmail: string;
+  date: string;
+  time: string;
+  isBooked: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  patientEmail?: string;
+  _id: mongoose.Types.ObjectId;
 }
-
 
 // Add these to your existing interfaces file
 export interface TimeSlotDetails {
   id: string;
-  time: string;        // 24-hour format (e.g., "14:30")
-  time12: string;      // 12-hour format (e.g., "2:30 PM")
-  time24: string;      // 24-hour format (e.g., "14:30")
-  date: string;        // Date in YYYY-MM-DD format
+  time: string; // 24-hour format (e.g., "14:30")
+  time12: string; // 12-hour format (e.g., "2:30 PM")
+  time24: string; // 24-hour format (e.g., "14:30")
+  date: string; // Date in YYYY-MM-DD format
 }
 
 export interface RescheduleAppointmentRequest {
@@ -140,7 +128,7 @@ export interface RescheduleAppointmentRequest {
   doctorEmail: string;
   originalSlot: TimeSlotDetails;
   newSlot: TimeSlotDetails;
-  action: 'reschedule';
+  action: "reschedule";
 }
 
 export interface RescheduleAppointmentResponse {
@@ -154,8 +142,6 @@ export interface RescheduleAppointmentResponse {
   };
   error?: string;
 }
-
-
 
 // Request Types
 export interface FetchAppointmentSlotsRequest {
@@ -180,8 +166,6 @@ export interface FetchAppointmentSlotsResponse {
   dates: string[];
   time_slots: DateSlots[];
 }
-
-
 
 // Request Types
 export interface AppointmentRequest {
@@ -210,8 +194,6 @@ export interface ControllerAppointmentResponse {
   appointment_id: string;
 }
 
-
-
 export interface Appointment {
   id: string;
   patientName: string;
@@ -227,7 +209,7 @@ export interface Appointment {
   message?: string;
   amount?: string;
   adminAmount?: string;
-  userRefoundAmount?:string|null;
+  userRefoundAmount?: string | null;
   doctorAmount?: string;
   paymentStatus?: string;
   payment_method?: string;
@@ -236,7 +218,6 @@ export interface Appointment {
   doctorId?: string;
   Prescription?: string;
 }
-
 
 export interface MongoAppointmentt {
   _id?: ObjectId;
@@ -255,11 +236,9 @@ export interface MongoAppointmentt {
   userRefoundAmount?: string;
   doctorId?: string | null;
   Prescription?: string | null;
-  doctorAmount?:string|null;
-  userId?:string|null;
+  doctorAmount?: string | null;
+  userId?: string | null;
 }
-
-
 
 export interface MongoAppointment {
   _id: Types.ObjectId;
@@ -272,7 +251,7 @@ export interface MongoAppointment {
   doctorName: string;
   specialty: string;
   patientEmail: string;
-  status: 'scheduled' | 'completed' | 'cancelled' | 'no-show';
+  status: "scheduled" | "completed" | "cancelled" | "no-show";
   created_at: Date;
   updated_at: Date;
   message?: string;
@@ -280,15 +259,13 @@ export interface MongoAppointment {
   adminAmount?: string;
   doctorAmount?: string;
   userRefoundAmount?: string;
-  paymentStatus?: 'pending' | 'success' | 'failed' | 'refunded';
-  payment_method?: 'online' | 'cash' | 'card';
-  payment_status?: 'pending' | 'completed' | 'failed';
+  paymentStatus?: "pending" | "success" | "failed" | "refunded";
+  payment_method?: "online" | "cash" | "card";
+  payment_status?: "pending" | "completed" | "failed";
   doctorId?: string;
   userId?: string;
   Prescription?: string;
 }
-
-
 
 // Response Type
 export interface UserAppointmentsResponse {
@@ -314,8 +291,6 @@ export interface UserAppointmentsRequest {
 //   appointments: IAppointment[];
 // }
 
-
-
 export interface AllAppointmentsResponse {
   appointments: IAppointment[];
   success?: boolean;
@@ -328,7 +303,6 @@ export interface AllAppointmentsResponse {
   hasPrevPage?: boolean;
 }
 
-
 export interface IAppointment {
   id?: Types.ObjectId | string;
   patientName?: string;
@@ -340,7 +314,7 @@ export interface IAppointment {
   doctorName?: string;
   specialty?: string;
   patientEmail?: string;
-  status: 'scheduled' | 'completed' | 'cancelled' | 'no-show';
+  status: "scheduled" | "completed" | "cancelled" | "no-show";
   created_at?: Date;
   updated_at?: Date;
   message?: string;
@@ -348,15 +322,13 @@ export interface IAppointment {
   adminAmount?: string;
   doctorAmount?: string;
   userRefoundAmount?: string;
-  paymentStatus?: 'pending' | 'success' | 'failed' | 'refunded';
-  payment_method?: 'online' | 'cash' | 'card';
-  payment_status?: 'pending' | 'completed' | 'failed';
+  paymentStatus?: "pending" | "success" | "failed" | "refunded";
+  payment_method?: "online" | "cash" | "card";
+  payment_status?: "pending" | "completed" | "failed";
   doctorId?: string;
   userId?: string;
   Prescription?: string;
 }
-
-
 
 export interface CancelAppointmentResponse {
   success: boolean;
@@ -367,12 +339,11 @@ export interface CancelAppointmentRequest {
   appointmentId: string | Types.ObjectId;
 }
 
-
 export interface ChatMessageStorageRequest {
   appointmentId: string;
-  messageType: 'text' | 'image' | 'file';
+  messageType: "text" | "image" | "file";
   content: string;
-  senderType: 'user' | 'doctor' | 'admin';
+  senderType: "user" | "doctor" | "admin";
   timestamp: string;
   senderId: string;
   fileUrl?: string;
@@ -387,7 +358,6 @@ export interface ChatMessageStorageResponse {
   doctorId: string;
 }
 
-
 export interface ChatMessageDbResponse {
   success: boolean;
   message: string;
@@ -395,7 +365,6 @@ export interface ChatMessageDbResponse {
   conversationId: string;
   doctorId: string;
 }
-
 
 export interface ChatMessageServiceResponse {
   success: boolean;
@@ -405,14 +374,11 @@ export interface ChatMessageServiceResponse {
   doctorId: string;
 }
 
-
-
-
 export interface ChatMessageGrpcRequest {
   appointmentId: string;
-  messageType: 'text' | 'image' | 'file';
+  messageType: "text" | "image" | "file";
   content: string;
-  senderType: 'user' | 'doctor' | 'admin';
+  senderType: "user" | "doctor" | "admin";
   timestamp: Date | string;
   senderId: string;
   fileUrl?: string;
@@ -431,14 +397,10 @@ export interface ChatMessageGrpcCall {
   request: ChatMessageGrpcRequest;
 }
 
-
-
-
 export type ChatMessageGrpcCallback = (
   error: Error | null,
   response: ChatMessageGrpcResponse | null
 ) => void;
-
 
 export interface ConversationFetchRequest {
   userId: string;
@@ -447,20 +409,24 @@ export interface ConversationFetchRequest {
 
 export interface ConversationMessageDetail {
   messageId: string;
-  senderId: {
-    _id: string;
-    name?: string;
-    email?: string;
-  } | string;
-  receiverId: {
-    _id: string;
-    name?: string;
-    email?: string;
-  } | string;
+  senderId:
+    | {
+        _id: string;
+        name?: string;
+        email?: string;
+      }
+    | string;
+  receiverId:
+    | {
+        _id: string;
+        name?: string;
+        email?: string;
+      }
+    | string;
   appointmentId: string;
-  messageType: 'text' | 'image' | 'file';
+  messageType: "text" | "image" | "file";
   content: string;
-  senderType: 'user' | 'doctor' | 'admin';
+  senderType: "user" | "doctor" | "admin";
   fileUrl: string;
   timestamp: Date | string;
   createdAt?: Date | string;
@@ -472,7 +438,7 @@ export interface ConversationDetail {
   participants: string[];
   appointmentId: string;
   lastMessage: string;
-  lastMessageType: 'text' | 'image' | 'file';
+  lastMessageType: "text" | "image" | "file";
   lastMessageTimestamp: Date | string;
   messages: ConversationMessageDetail[];
 }
@@ -487,7 +453,6 @@ export interface ConversationServiceFetchResponse {
   conversations: ConversationDetail[];
   message: string;
 }
-
 
 export interface ConversationGrpcFetchRequest {
   userId: string;
@@ -509,14 +474,13 @@ export type ConversationGrpcFetchCallback = (
   response: ConversationGrpcFetchResponse | null
 ) => void;
 
-
 // types/appointmentTypes.ts
 
 export interface AppointmentUpdateResponse {
   success: boolean;
   error?: string;
   patientEmail?: string;
-  appointment?: IAppointment; 
+  appointment?: IAppointment;
 }
 
 export interface AppointmentUpdateParams {
@@ -524,39 +488,169 @@ export interface AppointmentUpdateParams {
   endedBy: string;
 }
 
-
 export interface AppointmentUpdateRequest {
   appointmentId: string;
   endedBy: string;
 }
 
-
-export  interface Cancelres{
-  success:boolean
+export interface Cancelres {
+  success: boolean;
 }
 
-
 export interface CreateServiceRequest {
-  name:string;
-  description:string
+  name: string;
+  description: string;
 }
 
 export interface CreateServiceResponse {
-  success:boolean
+  success: boolean;
 }
 
 export interface DeleteServiceRequest {
-serviceId:string
+  serviceId: string;
 }
 
 export interface EditServiceRequest {
-serviceId:string
-name?:string;
-description?:string
+  serviceId: string;
+  name?: string;
+  description?: string;
 }
 
 export interface updateData {
-serviceId?:string
-name?:string;
-description?:string
+  serviceId?: string;
+  name?: string;
+  description?: string;
+}
+
+export interface FetchServiceRequest {}
+
+export interface FetchServiceResponse {
+  services: IService[];
+  success?: boolean;
+  message?: string;
+}
+
+export interface filteringDoctorAppoinmentsRequest {
+  searchQuery?: string;
+  sortBy?: string;
+  sortDirection?: string;
+  page?: number;
+  limit?: number;
+  role?: string;
+}
+
+export interface filteringDoctorAppoinmentsResponse {
+  appointments: Appointment[];
+  success: boolean;
+  message: string;
+  totalCount: number;
+  totalPages: number;
+  currentPage: number;
+}
+
+export interface FilteringResponse {
+  appointments: Appointment[];
+  success: boolean;
+  message: string;
+  totalCount: number;
+  totalPages: number;
+  currentPage: number;
+}
+
+export interface GrpcCallback {
+  (response?: FilteringResponse): void;
+}
+
+export interface appointmentaData {
+  id: string;
+  doctor_id?: string;
+  date: string;
+  time: string;
+  is_booked: boolean;
+  patientEmail: string;
+}
+
+// export interface Appointment {
+//   id: string;
+//   patientName: string;
+//   doctorEmail: string;
+//   patientPhone: string;
+//   appointmentDate: string;
+//   appointmentTime: string;
+//   notes: string;
+//   doctorName: string;
+//   specialty: string;
+//   patientEmail: string;
+//   status: 'scheduled' | 'completed' | 'cancelled' | 'no-show';
+//   message: string;
+//   payment_method: 'online' | 'cash' | 'card';
+//   paymentStatus: 'pending' | 'success' | 'failed' | 'refunded';
+//   amount: string;
+//   doctorAmount: string;
+//   adminAmount: string;
+//   userRefoundAmount: string;
+//   userId: string;
+//   doctorId: string;
+//   Prescription: string;
+//   createdAt: Date;
+//   updatedAt: Date;
+// }
+
+export interface FilteringResponse {
+  appointments: Appointment[];
+  success: boolean;
+  message: string;
+  totalCount: number;
+  totalPages: number;
+  currentPage: number;
+}
+
+export interface SearchParam {
+  searchQuery: string;
+  sortBy: string;
+  sortDirection: "asc" | "desc";
+  role: string;
+  page: number;
+  limit: number;
+}
+
+export interface CancelData {
+  time: string;
+  date: string;
+  email: string;
+}
+
+export interface CancelResponse {
+  success: boolean;
+  message: string;
+  error?: string;
+}
+
+export interface PrescriptionData {
+  doctorId: string;
+  patientId: string;
+  appointmentId: string;
+  prescriptionDetails: string;
+  date: string;
+  time: string;
+}
+
+export interface PrescriptionResponse {
+  success: boolean;
+}
+
+export interface FetchPrescriptionRequest {
+  doctorId: string;
+  userIdd: string;
+  appointmentId: string;
+  date: string;
+  time: string;
+}
+
+export interface FetchPrescriptionResponse {
+  prescriptionDetails: string;
+  date: string;
+  time: string;
+  patientEmail: string | null;
+  doctorEmail: string | null;
 }

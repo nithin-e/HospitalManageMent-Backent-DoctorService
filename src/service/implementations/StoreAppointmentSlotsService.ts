@@ -1,22 +1,28 @@
-import { IStoreAppointmentSlotsService } from "../interFace/StoreAppointmentSlotsInterFace";
-import  {
+import { IStoreAppointmentSlotsService } from "../interFace/IStoreAppointmentSlots";
+
+import {
+  appointmentaData,
+  AppointmentSlotsData,
   CancelData,
+  Cancelres,
   CancelResponse,
+  DbResponse,
+  FetchDoctorSlotsResponse,
   FetchPrescriptionRequest,
   FetchPrescriptionResponse,
   PrescriptionData,
   PrescriptionResponse,
-} from "../../repositoriess/implementation/StoreAppointmentSlots_Repo";
-import {
-  AppointmentSlotsData,
-  Cancelres,
-  DbResponse,
-  FetchDoctorSlotsResponse,
   RescheduleAppointmentRequest,
   RescheduleAppointmentResponse,
-} from "../../doctorInterFace/IdoctorType";
-import { IAppointmentSlotsRepository } from "../../repositoriess/interFace/StoreAppointmentSlots_RepoInterFace";
-import { appointmentaData } from "../../controllerr/implementation/StoreAppointmentSlots_Controller";
+} from "../../interfaces/Doctor.interface";
+import { IAppointmentSlotsRepository } from "../../repositories/interFace/IStoreAppointmentSlotsRepository";
+
+/**
+ * Service layer for managing appointment slots, cancellations,
+ * rescheduling, and prescriptions.
+ *
+ * Acts as a bridge between controllers and repository layer.
+ */
 
 export default class StoreAppointmentSlotsServer
   implements IStoreAppointmentSlotsService
@@ -27,14 +33,19 @@ export default class StoreAppointmentSlotsServer
     this._storeAppointmentSlotsRepository = storeAppointmentSlotsRepo;
   }
 
+  /**
+   * Creates or updates appointment slots for a doctor.
+   *
+   * @param appointmentData - slot creation/update request
+   * @returns DbResponse with operation result
+   */
+
   createAppointmentSlot = async (
     appointmentData: AppointmentSlotsData
   ): Promise<DbResponse> => {
     try {
-      // Validate the request data
       this.validateAppointmentData(appointmentData);
 
-      // Pass the data to the repository
       const response =
         await this._storeAppointmentSlotsRepository.storeAppointmentSlots(
           appointmentData
@@ -47,7 +58,13 @@ export default class StoreAppointmentSlotsServer
     }
   };
 
-  // Validation method
+  /**
+   * Validates appointment slot creation or update request.
+   *
+   * @param appointmentData - data to validate
+   * @throws Error if validation fails
+   */
+
   private validateAppointmentData = (appointmentData: AppointmentSlotsData) => {
     const { doctor_email, action } = appointmentData;
 
@@ -79,6 +96,13 @@ export default class StoreAppointmentSlotsServer
     }
   };
 
+  /**
+   * Fetches all slots for a doctor by email.
+   *
+   * @param email - doctor email
+   * @returns list of slots
+   */
+
   getDoctorSlots = async (email: string): Promise<FetchDoctorSlotsResponse> => {
     try {
       return await this._storeAppointmentSlotsRepository.fetchDoctorSlots(
@@ -90,11 +114,17 @@ export default class StoreAppointmentSlotsServer
     }
   };
 
+  /**
+   * Reschedules an existing appointment.
+   *
+   * @param rescheduleData - new date/time and appointment info
+   * @returns updated appointment data
+   */
+
   rescheduleAppointment = async (
     rescheduleData: RescheduleAppointmentRequest
   ): Promise<RescheduleAppointmentResponse> => {
     try {
-      // Pass the data to the repository
       const response =
         await this._storeAppointmentSlotsRepository.rescheduleAppointment(
           rescheduleData
@@ -105,6 +135,13 @@ export default class StoreAppointmentSlotsServer
       throw error;
     }
   };
+
+  /**
+   * Cancels appointment requested by a user.
+   *
+   * @param cancelData - user cancel request
+   * @returns cancel response with status and message
+   */
 
   cancelAppointmentByUser = async (
     cancelData: CancelData
@@ -125,6 +162,12 @@ export default class StoreAppointmentSlotsServer
     }
   };
 
+  /**
+   * Creates a prescription for an appointment.
+   *
+   * @param prescriptionData - prescription details
+   * @returns saved prescription data
+   */
   createPrescription = async (
     PrescriptionData: PrescriptionData
   ): Promise<PrescriptionResponse> => {
@@ -140,11 +183,16 @@ export default class StoreAppointmentSlotsServer
     }
   };
 
+  /**
+   * Fetches a prescription for a given appointment.
+   *
+   * @param request - prescription fetch request
+   * @returns prescription response
+   */
   getPrescription = async (
     request: FetchPrescriptionRequest
   ): Promise<FetchPrescriptionResponse> => {
     try {
-      // You could add additional business logic here if needed
       return await this._storeAppointmentSlotsRepository.fetchPrescription(
         request
       );
@@ -154,6 +202,12 @@ export default class StoreAppointmentSlotsServer
     }
   };
 
+  /**
+   * Cancels an appointment from the doctor's side.
+   *
+   * @param request - doctor cancel request
+   * @returns cancel response
+   */
   cancelAppointmentByDoctor = async (
     request: appointmentaData
   ): Promise<Cancelres> => {
