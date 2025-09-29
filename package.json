@@ -7,24 +7,33 @@
     "dev": "nodemon src/server.ts",
     "build": "tsc && npm run copy-assets",
     "copy-assets": "cp -r src/proto dist/proto 2>/dev/null || mkdir -p dist/proto && find src -name '*.proto' -exec cp {} dist/proto/ \\; || echo 'No proto files to copy'",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@eslint/js": "^9.36.0",
     "@types/express": "^5.0.1",
     "@types/node": "^22.15.3",
+    "eslint": "^9.36.0",
+    "eslint-plugin-react": "^7.37.5",
+    "globals": "^16.4.0",
+    "jiti": "^2.6.0",
     "nodemon": "^3.1.10",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.44.1"
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.13.3",
     "axios": "^1.10.0",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
+    "inversify": "^7.10.1",
     "mongoose": "^8.14.1",
     "node-cron": "^4.1.1",
     "path": "^0.12.7"

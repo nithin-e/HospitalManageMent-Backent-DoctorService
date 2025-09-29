@@ -24,8 +24,8 @@ export async function checkAppointments(): Promise<Appointment[]> {
     const startedAppointments: Appointment[] = [];
 
     for (const appt of appointments) {
-      let [time, meridian] = appt.appointmentTime.split(' '); 
-      let [hourStr, minute] = time.split(':');
+      const [time, meridian] = appt.appointmentTime.split(' '); 
+      const [hourStr, minute] = time.split(':');
 
       let hour = parseInt(hourStr, 10);
       if (meridian === 'PM' && hour < 12) hour += 12;

@@ -19,7 +19,7 @@ export const generateRecurringDates = (selectedDates: string[], monthsAhead: num
   
   
     // Start from Sunday of current week
-    let currentWeekStart = new Date(today);
+    const currentWeekStart = new Date(today);
     currentWeekStart.setDate(today.getDate() - today.getDay());
   
   

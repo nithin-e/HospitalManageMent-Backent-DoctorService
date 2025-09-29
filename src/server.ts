@@ -1,7 +1,7 @@
 import "dotenv/config";
-import connectDB from "./config/mongo";
+import connectDB from "./config/mongo.config";
 import { startGrpcServer } from "./grpc/server";
-import { startCronJobs } from "./cron";
+import { startCronJobs } from "./utility/cron";
 
 (async () => {
   console.log("Connecting to MongoDB...");

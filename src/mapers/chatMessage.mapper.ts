@@ -5,7 +5,7 @@ import {
   ChatMessageStorageRequest,
   filteringDoctorAppoinmentsRequest,
   filteringDoctorAppoinmentsResponse,
-} from "../interfaces/Doctor.interface";
+} from "../types/Doctor.interface";
 
 // Mapper
 export class ChatMessageMapper {

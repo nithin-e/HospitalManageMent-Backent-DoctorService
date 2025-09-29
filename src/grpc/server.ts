@@ -1,5 +1,5 @@
 import * as grpc from "@grpc/grpc-js";
-import { loadProto, createGrpcServer } from "../config/grpc";
+import { loadProto, createGrpcServer } from "../config/grpc.config";
 import { doctorGrpcHandlers } from "./handlers";
 
 export const startGrpcServer = () => {
