@@ -1,7 +1,7 @@
 import { PrescriptionData, PrescriptionResponse, FetchPrescriptionRequest, FetchPrescriptionResponse } from "../../types/Doctor.interface";
 
 
-export interface IPriscriptionService {
+export interface IPrescriptionService {
     createPrescription(data: PrescriptionData): Promise<PrescriptionResponse>;
     getPrescription(
       request: FetchPrescriptionRequest

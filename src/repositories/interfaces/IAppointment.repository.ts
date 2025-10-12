@@ -6,17 +6,18 @@ import {
   CancelAppointmentResponse,
   FetchAppointmentSlotsRequest,
   FetchAppointmentSlotsResponse,
-  
   FilteringResponse,
-  
+  SearchParam,
   UserAppointmentsResponse,
 } from "../../types/Doctor.interface";
 import { IService } from "../../entities/serviceModel";
-import { IStoreAppointmentSlotsService } from "./IStoreAppointmentSlots";
+import { IAppointmentSlotsRepository } from "./IStore-appointmentslots.repository";
 
-export interface IFetchAppointmentSlotService extends IStoreAppointmentSlotsService {
+export interface IAppointmentRepository extends IAppointmentSlotsRepository {
 
-  makeAppointment(request: AppointmentRequest): Promise<AppointmentResponse>;
+  createAppointment(
+    appointmentData: AppointmentRequest
+  ): Promise<AppointmentResponse>;
   fetchUserAppointments(
     email: string,
     page: number,
@@ -30,13 +31,6 @@ export interface IFetchAppointmentSlotService extends IStoreAppointmentSlotsServ
     appointmentId: CancelAppointmentRequest["appointmentId"]
   ): Promise<CancelAppointmentResponse>;
 
-
-   filteringDoctorAppoinments(params: {
-      searchQuery?: string;
-      sortBy?: string;
-      sortDirection?: "asc" | "desc";
-      page?: number;
-      limit?: number;
-      role?: string;
-    }): Promise<FilteringResponse>;
+    filteringDoctorAppoinments(params: SearchParam): Promise<FilteringResponse>;
+  
 }

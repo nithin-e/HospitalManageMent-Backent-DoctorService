@@ -3,11 +3,10 @@ import {
   ChatMessageDbResponse,
   ChatMessageStorageRequest,
   ConversationDbFetchResponse,
-  FilteringResponse,
-  SearchParam,
+
 } from "../../types/Doctor.interface";
 
-export interface IChatHandlingRepo {
+export interface IChatRepository {
   storeMessage(
     messageData: ChatMessageStorageRequest
   ): Promise<ChatMessageDbResponse>;

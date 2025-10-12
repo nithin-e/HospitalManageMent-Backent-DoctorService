@@ -1,7 +1,7 @@
 import { inject, injectable } from 'inversify';
-import { IServiceManageMentService } from '../interfaces/IServiceManageMentService';
+import { IServiceManageMentService } from '../interfaces/IService-management.service';
 import { TYPES } from '../../types/inversify';
-import { IServiceManageMentRepository } from '../../repositories/interfaces/IService-managementRepository';
+import { IServiceManageMentRepository } from '../../repositories/interfaces/IService-management-repository';
 import { IService } from '../../entities/serviceModel';
 
 @injectable()

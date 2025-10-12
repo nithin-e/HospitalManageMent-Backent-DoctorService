@@ -1,6 +1,13 @@
 import mongoose, { ObjectId, Types } from "mongoose";
 import { IService } from "../entities/serviceModel";
 
+
+
+export interface Data {
+  [key: string]: any;
+}
+
+
 // Individual time slot interface
 export interface TimeSlot {
   id?: string;
@@ -11,33 +18,50 @@ export interface TimeSlot {
 }
 
 // Time slots for a specific date
-interface DateTimeSlots {
-  slots: TimeSlot[];
-  date: string;
-}
+// interface DateTimeSlots {
+//   slots: TimeSlot[];
+//   date: string;
+// }
 
 // Date range options
 type DateRange = "oneWeek" | "twoWeeks" | "oneMonth" | "custom";
 
 // Action types for slot management
-type SlotAction = "create" | "update" | "delete" | "bulk_create";
+// type SlotAction = "create" | "update" | "delete" | "bulk_create";
 
-// Main appointment data interface
 export interface AppointmentSlotsData {
-  selected_dates: string[];
-  time_slots: DateTimeSlots[];
-  removed_slot_ids: string[];
-  remaining_slots: TimeSlot[];
-  new_time_slots: TimeSlot[];
   doctor_email: string;
-  date_range: DateRange;
   action: SlotAction;
-  start_time: string;
-  end_time: string;
-  slot_duration: number; // in minutes
-  include_rest_periods: boolean;
-  create_recurring: boolean;
-  recurring_months: number;
+
+  // Core properties
+  selected_dates?: string[];
+  time_slots?: DateTimeSlots[];
+  removed_slot_ids?: string[];
+  remaining_slots?: TimeSlot[];
+  new_time_slots?: TimeSlot[];
+  date_range?: string; // Changed from DateRange to string to match 'oneWeek'
+
+  // Optional scheduling details
+  start_time?: string;
+  end_time?: string;
+  slot_duration?: number;
+  include_rest_periods?: boolean;
+  create_recurring?: boolean;
+  recurring_months?: number;
+}
+
+
+export type SlotAction = "create" | "update";
+
+export interface TimeSlot {
+  date: string;
+  time: string;
+  _id?: string;
+}
+
+export interface DateTimeSlots {
+  date: string;
+  slots: string[];
 }
 
 export interface GrpcCall {

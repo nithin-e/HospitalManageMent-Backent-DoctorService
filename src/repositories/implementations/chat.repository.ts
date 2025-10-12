@@ -1,4 +1,3 @@
-import { IChatHandlingRepo } from '../interfaces/IChatRepository';
 import { Types } from 'mongoose';
 import Chat from '../../entities/meetSchema';
 import Message from '../../entities/messageSchema';
@@ -10,6 +9,7 @@ import {
     ConversationDbFetchResponse,
 } from '../../types/Doctor.interface';
 import { injectable } from 'inversify';
+import { IChatRepository } from '../interfaces/IChat.repository';
 
 /**
  * ChatHandlingRepo
@@ -20,7 +20,7 @@ import { injectable } from 'inversify';
  */
 
 @injectable()
-export class ChatRepository implements IChatHandlingRepo {
+export class ChatRepository implements IChatRepository {
     /**
      * Stores a message in the database.
      * Creates or updates a conversation record,

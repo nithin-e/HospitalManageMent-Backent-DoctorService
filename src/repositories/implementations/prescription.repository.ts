@@ -7,7 +7,7 @@ import {
     FetchPrescriptionRequest,
     FetchPrescriptionResponse,
 } from '../../types/Doctor.interface';
-import { IPriscriptionRepo } from '../interfaces/IPriscriptionRepository';
+import { IPriscriptionRepo } from '../interfaces/IPriscription.repository';
 
 @injectable()
 export class PrescriptionRepository implements IPriscriptionRepo {

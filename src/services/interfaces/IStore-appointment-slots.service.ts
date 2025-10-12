@@ -3,7 +3,6 @@ import {
   CancelData,
   Cancelres,
   CancelResponse,
-  FetchDoctorSlotsResponse,
   RescheduleAppointmentRequest,
   RescheduleAppointmentResponse,
 } from "../../types/Doctor.interface";

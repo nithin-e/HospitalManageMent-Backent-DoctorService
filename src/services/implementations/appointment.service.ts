@@ -1,4 +1,4 @@
-import { IFetchAppointmentSlotService } from '../interfaces/IFetchAppontMentSlotes';
+import { IAppointmentService } from '../interfaces/IAppontment.service';
 import {
     AllAppointmentsResponse,
     appointmentaData,
@@ -15,13 +15,13 @@ import {
     SearchParam,
     UserAppointmentsResponse,
 } from '../../types/Doctor.interface';
-import { IAppointmentRepository } from '../../repositories/interfaces/IAppontMentSlotesRepository';
+import { IAppointmentRepository } from '../../repositories/interfaces/IAppointment.repository';
 import { inject, injectable } from 'inversify';
 import { TYPES } from '../../types/inversify';
-import { IPriscriptionRepo } from '../../repositories/interfaces/IPriscriptionRepository';
+import { IPriscriptionRepo } from '../../repositories/interfaces/IPriscription.repository';
 
 @injectable()
-export class AppontMentService implements IFetchAppointmentSlotService {
+export class AppontMentService implements IAppointmentService {
     constructor(
         @inject(TYPES.AppointmentRepository)
         private _appointmentRepository: IAppointmentRepository &

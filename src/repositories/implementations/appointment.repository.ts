@@ -1,6 +1,6 @@
 import AppointmentSlot from '../../entities/storeAppointmentSlot_schema';
 import AppointmentModel from '../../entities/AppointmentModel';
-import { IAppointmentRepository } from '../interfaces/IAppontMentSlotesRepository';
+import { IAppointmentRepository } from '../interfaces/IAppointment.repository';
 import {
     AllAppointmentsResponse,
     Appointment,
@@ -17,17 +17,15 @@ import {
     RescheduleAppointmentRequest,
     RescheduleAppointmentResponse,
     SearchParam,
-    updateData,
     UserAppointmentsResponse,
 } from '../../types/Doctor.interface';
-import serviceModel, { IService } from '../../entities/serviceModel';
-import { BaseRepository } from './base.repository';
+
 import mongoose, { FilterQuery, SortOrder } from 'mongoose';
 import { injectable } from 'inversify';
 import { convertToDbDateFormat } from '../../utility/timeFormatter';
 
 @injectable()
-export default class AppontMentRepository implements IAppointmentRepository {
+export  class AppontMentRepository implements IAppointmentRepository {
     createAppointment = async (
         appointmentData: AppointmentRequest
     ): Promise<AppointmentResponse> => {

@@ -1,4 +1,4 @@
-import { IChatHandlingService } from '../interfaces/IChatHandlingService';
+import {  IChatService } from '../interfaces/IChat.service';
 import {
     AppointmentUpdateParams,
     AppointmentUpdateResponse,
@@ -7,9 +7,9 @@ import {
     ConversationFetchRequest,
     ConversationServiceFetchResponse,
 } from '../../types/Doctor.interface';
-import { IChatHandlingRepo } from '../../repositories/interfaces/IChatRepository';
 import { inject, injectable } from 'inversify';
 import { TYPES } from '../../types/inversify';
+import { IChatRepository } from '../../repositories/interfaces/IChat.repository';
 
 /**
  * ChatHandlingService
@@ -20,9 +20,9 @@ import { TYPES } from '../../types/inversify';
  */
 
 @injectable()
-export class ChatService implements IChatHandlingService {
+export class ChatService implements IChatService {
     constructor(
-        @inject(TYPES.ChatRepository) private _chatRepository: IChatHandlingRepo
+        @inject(TYPES.ChatRepository) private _chatRepository: IChatRepository
     ) {}
 
     /**

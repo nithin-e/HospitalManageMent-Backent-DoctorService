@@ -10,6 +10,7 @@ import {
     Cancelres,
     CancelResponse,
     ControllerAppointmentResponse,
+    Data,
     FetchDoctorSlotsRequest,
     filteringDoctorAppoinmentsRequest,
     filteringDoctorAppoinmentsResponse,
@@ -18,11 +19,12 @@ import {
     UserAppointmentsRequest,
     UserAppointmentsResponse,
 } from '../types/Doctor.interface';
-import { CancelRequester } from '@grpc/grpc-js/build/src/client-interceptors';
-import { inject, injectable } from 'inversify';
+import { Response, Request } from 'express';
+
 import { TYPES } from '../types/inversify';
 import { FilteringDoctorAppointmentsMapper } from '../mapers/chatMessage.mapper';
-import { IFetchAppointmentSlotService } from '../services/interfaces/IFetchAppontMentSlotes';
+import { IAppointmentService } from '../services/interfaces/IAppontment.service';
+import { inject, injectable } from 'inversify';
 
 export interface GrpcCall {
     request: FetchDoctorSlotsRequest;
@@ -32,50 +34,34 @@ export interface GrpcCall {
 export class AppointmentController {
     constructor(
         @inject(TYPES.AppointmentService)
-        private _appointMentService: IFetchAppointmentSlotService
+        private _appointMentService: IAppointmentService
     ) {}
 
-    makeAppointment = async (
-        call: { request: AppointmentRequest },
-        callback: (
-            error: grpc.ServiceError | null,
-            response?: ControllerAppointmentResponse
-        ) => void
-    ) => {
-        try {
-            const dbResponse = await this._appointMentService.makeAppointment(
-                call.request
-            );
+   makeAppointment = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const appointmentData = req.body;
 
-            const response: ControllerAppointmentResponse = {
-                success: true,
-                message: 'Appointment booked successfully',
-                appointment_id: dbResponse.id,
-            };
+      const dbResponse = await this._appointMentService.makeAppointment(appointmentData);
 
-            callback(null, response);
-        } catch (error) {
-            console.log('Error in controller:', error);
-            const grpcError = {
-                code: grpc.status.INTERNAL,
-                message: (error as Error).message,
-            };
-            // callback(null,grpcError);
-        }
-    };
+      res.status(200).json({
+        success: true,
+        message: "Appointment booked successfully",
+        appointment_id: dbResponse.id,
+      });
+    } catch (error) {
+      console.error("Error in makeAppointment controller:", error);
+    }
+  };
 
     fetchUserAppointments = async (
-        call: { request: UserAppointmentsRequest },
-        callback: (
-            error: grpc.ServiceError | null,
-            response?: UserAppointmentsResponse
-        ) => void
-    ) => {
+        req: Request,
+        res: Response
+    ): Promise<void> => {
         try {
-            const { email, page = 1, limit = 3 } = call.request;
+            const { email, page = '1', limit = '3' } = req.body;
 
-            const validatedPage = Math.max(1, page);
-            const validatedLimit = Math.min(Math.max(1, limit), 100);
+            const validatedPage = Math.max(1, Number(page));
+            const validatedLimit = Math.min(Math.max(1, Number(limit)), 100);
 
             const response =
                 await this._appointMentService.fetchUserAppointments(
@@ -84,10 +70,11 @@ export class AppointmentController {
                     validatedLimit
                 );
 
-            callback(null, {
-                appointments: response.appointments,
+            // Send success response
+            res.status(200).json({
                 success: response.success,
                 message: response.message,
+                appointments: response.appointments,
                 currentPage: response.currentPage,
                 totalPages: response.totalPages,
                 totalAppointments: response.totalAppointments,
@@ -96,138 +83,148 @@ export class AppointmentController {
                 hasPrevPage: response.hasPrevPage,
             });
         } catch (error) {
-            console.log('Error fetching user appointments:', error);
-            const grpcError = {
-                code: grpc.status.INTERNAL,
-                message: (error as Error).message,
-            };
-            // callback(grpcError,null);
+            console.error('REST fetchUserAppointments error:', error);
+            res.status(500).json({
+                message:
+                    error instanceof Error
+                        ? error.message
+                        : 'Internal server error',
+            });
         }
     };
 
     fetchAllUserAppointments = async (
-        call: { request: { page: number; limit: number } },
-        callback: (
-            error: grpc.ServiceError | null,
-            response?: AllAppointmentsResponse
-        ) => void
-    ) => {
+        req: Request,
+        res: Response
+    ): Promise<void> => {
         try {
-            const { page, limit } = call.request;
+            let { page = '1', limit = '10' } = req.query;
 
+            // Convert and validate pagination values
+            const validatedPage = Math.max(1, Number(page));
+            const validatedLimit = Math.min(Math.max(1, Number(limit)), 100);
+
+            // Call your appointment service method
             const response =
                 await this._appointMentService.fetchAllUserAppointments(
-                    page,
-                    limit
+                    validatedPage,
+                    validatedLimit
                 );
 
-            const grpcResponse: AllAppointmentsResponse = {
-                appointments: response.appointments,
+            // Send success response
+            res.status(200).json({
                 success: true,
                 message: 'Appointments fetched successfully',
+                appointments: response.appointments,
                 currentPage: response.currentPage,
                 totalPages: response.totalPages,
                 totalAppointments: response.totalAppointments,
                 limit: response.limit,
                 hasNextPage: response.hasNextPage,
                 hasPrevPage: response.hasPrevPage,
-            };
-
-            callback(null, grpcResponse);
+            });
         } catch (error) {
-            console.log('Error fetching user appointments:', error);
+            console.error('REST fetchAllUserAppointments error:', error);
+            res.status(500).json({
+                success: false,
+                message:
+                    error instanceof Error
+                        ? error.message
+                        : 'Internal server error',
+            });
         }
     };
 
     cancelUserAppointment = async (
-        call: { request: CancelAppointmentRequest },
-        callback: (
-            error: grpc.ServiceError | null,
-            response?: CancelAppointmentResponse
-        ) => void
-    ) => {
+        req: Request,
+        res: Response
+    ): Promise<void> => {
         try {
-            const { appointmentId } = call.request;
+            const { appointmentId } = req.body;
 
+            // Call service method
             const response =
                 await this._appointMentService.cancelUserAppointment(
                     appointmentId
                 );
 
-            callback(null, response);
+            // Send success response
+            res.status(200).json({
+                success: response.success,
+                message:
+                    response.message || 'Appointment cancelled successfully',
+                data: response,
+            });
         } catch (error) {
-            console.error('Error cancelling appointment:', error);
-            const grpcError = {
-                code: grpc.status.INTERNAL,
-                message: (error as Error).message,
-            };
+            console.error('REST cancelUserAppointment error:', error);
+            res.status(500).json({
+                success: false,
+                message:
+                    error instanceof Error
+                        ? error.message
+                        : 'Internal server error',
+            });
         }
     };
 
     rescheduleAppointment = async (
-        call: { request: RescheduleAppointmentRequest },
-        callback: (
-            error: grpc.ServiceError | null,
-            response: RescheduleAppointmentResponse | null
-        ) => void
-    ) => {
+        rescheduleData: RescheduleAppointmentRequest
+    ): Promise<Data> => {
         try {
+            // Call your service layer
             const dbResponse =
                 await this._appointMentService.rescheduleAppointment(
-                    call.request
+                    rescheduleData
                 );
 
-            callback(null, dbResponse);
-        } catch (error) {
-            console.log('Error in doctor controller:', error);
-            const grpcError = {
-                code: grpc.status.INTERNAL,
-                message: (error as Error).message,
+            console.log(
+                '✅ Appointment rescheduled successfully via RabbitMQ:',
+                dbResponse
+            );
+            return {
+                success: true,
+                data: dbResponse,
+                message: 'Appointment rescheduled successfully',
             };
-            // callback(grpcError, null);
+        } catch (error) {
+            return {
+                success: false,
+                data: null,
+                message:
+                    (error as Error).message || 'Unexpected error occurred',
+            };
         }
     };
-
-    /**
-     * Cancels an appointment from the user side.
-     *
-     * @param call - gRPC call with cancellation data
-     * @param callback - gRPC response callback
-     */
 
     cancelAppointmentUserSide = async (
-        call: grpc.ServerUnaryCall<CancelRequester, CancelResponse>,
-        callback: grpc.sendUnaryData<CancelResponse>
-    ) => {
+        req: Request,
+        res: Response
+    ): Promise<void> => {
         try {
-            const res = await this._appointMentService.cancelAppointmentByUser(
-                call.request as unknown as CancelData
-            );
+            const cancelData = req.body;
 
-            callback(null, res);
+            const response =
+                await this._appointMentService.cancelAppointmentByUser(
+                    cancelData
+                );
+
+            res.status(200).json({
+                success: true,
+                message: 'Appointment cancelled successfully by user',
+                data: response,
+            });
         } catch (error) {
-            console.log('Error in notification controller:', error);
-            const grpcError = {
-                code: grpc.status.INTERNAL,
-                message: (error as Error).message,
-            };
-            callback(grpcError, null);
+            console.error('REST cancelAppointmentUserSide error:', error);
+            res.status(500).json({
+                success: false,
+                message:
+                    error instanceof Error
+                        ? error.message
+                        : 'Internal server error',
+            });
         }
     };
 
-    /**
-     * Creates a prescription for an appointment.
-     *
-     * @param call - gRPC call with prescription data
-     * @param callback - gRPC response callback
-     */
-
-    /**
-     * Cancels an appointment from the doctor side.
-     *
-     * @param call - gRPC call with appointment data
-     * @param callback - gRPC response callback
-     */
     doctorCancelAppointment = async (
         call: { request: appointmentaData },
         callback: (
@@ -261,16 +258,13 @@ export class AppointmentController {
         }
     };
 
-    filteringDoctorAppoinments = async (
-        call: grpc.ServerUnaryCall<
-            filteringDoctorAppoinmentsRequest,
-            filteringDoctorAppoinmentsResponse
-        >,
-        callback: grpc.sendUnaryData<filteringDoctorAppoinmentsResponse>
+    filteringDoctorAppointments = async (
+        req: Request,
+        res: Response
     ): Promise<void> => {
         try {
             const params = FilteringDoctorAppointmentsMapper.toServiceParams(
-                call.request
+                req.body
             );
 
             const result =
@@ -278,16 +272,30 @@ export class AppointmentController {
                     params
                 );
 
-            const grpcResponse =
+            const response =
                 FilteringDoctorAppointmentsMapper.toGrpcResponse(result);
 
-            callback(null, grpcResponse);
+            res.status(200).json({
+                success: true,
+                message: 'Doctor appointments filtered successfully',
+                data: response,
+            });
         } catch (error) {
-            const errorResponse = FilteringDoctorAppointmentsMapper.toGrpcError(
-                error instanceof Error ? error.message : 'Internal server error'
-            );
+            console.error('REST filteringDoctorAppointments error:', error);
 
-            callback(null, errorResponse);
+            const errorMessage =
+                error instanceof Error
+                    ? error.message
+                    : 'Internal server error';
+
+            const errorResponse =
+                FilteringDoctorAppointmentsMapper.toGrpcError(errorMessage);
+
+            res.status(500).json({
+                success: false,
+                message: errorMessage,
+                error: errorResponse,
+            });
         }
     };
 }

@@ -5,10 +5,10 @@ import {
   ChatMessageStorageRequest,
   ConversationFetchRequest,
   ConversationServiceFetchResponse,
-  FilteringResponse,
+  
 } from "../../types/Doctor.interface";
 
-export interface IChatHandlingService {
+export interface IChatService {
   storeMessage(
     messageData: ChatMessageStorageRequest
   ): Promise<ChatMessageServiceResponse>;

@@ -1,7 +1,7 @@
 import { injectable } from 'inversify';
 import serviceModel, { IService } from '../../entities/serviceModel';
 import { updateData } from '../../types/Doctor.interface';
-import { IServiceManageMentRepository } from '../interfaces/IService-managementRepository';
+import { IServiceManageMentRepository } from '../interfaces/IService-management-repository';
 import { BaseRepository } from './base.repository';
 
 @injectable()

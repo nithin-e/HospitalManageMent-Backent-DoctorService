@@ -9,7 +9,8 @@ import {
 } from '../types/Doctor.interface';
 import { inject, injectable } from 'inversify';
 import { TYPES } from '../types/inversify';
-import { IServiceManageMentRepository } from '../repositories/interfaces/IService-managementRepository';
+import { IServiceManageMentRepository } from '../repositories/interfaces/IService-management-repository';
+import { Response, Request } from 'express';
 
 @injectable()
 export class ServiceController {
@@ -18,119 +19,105 @@ export class ServiceController {
         private _serviceManageMent: IServiceManageMentRepository
     ) {}
 
-    createService = async (
-        call: { request: CreateServiceRequest },
-        callback: (
-            error: grpc.ServiceError | null,
-            response?: CreateServiceResponse
-        ) => void
-    ) => {
+    createService = async (req: Request, res: Response): Promise<void> => {
         try {
-            const { name, description } = call.request;
+            const { name, description } = req.body;
 
             const success = await this._serviceManageMent.createService(
                 name,
                 description
             );
 
-            const response: CreateServiceResponse = { success };
-
-            callback(null, response);
+            res.status(201).json({
+                success: success,
+                message: success
+                    ? 'Service created successfully'
+                    : 'Failed to create service',
+            });
         } catch (error) {
-            console.error('Error cancelling appointment:', error);
-            const grpcError = {
-                code: grpc.status.INTERNAL,
-                message: (error as Error).message,
-            };
+            console.error('REST createService error:', error);
+            res.status(500).json({
+                success: false,
+                message:
+                    error instanceof Error
+                        ? error.message
+                        : 'Internal server error',
+            });
         }
     };
 
-    fetchService = async (
-        call: grpc.ServerUnaryCall<FetchServiceRequest, FetchServiceResponse>,
-        callback: grpc.sendUnaryData<FetchServiceResponse>
-    ) => {
+    fetchService = async (req: Request, res: Response): Promise<void> => {
         try {
             const services = await this._serviceManageMent.fetchService();
 
-            const response: FetchServiceResponse = {
-                services: services,
+            res.status(200).json({
                 success: true,
                 message: 'Services fetched successfully',
-            };
-
-            // Send successful response
-            callback(null, response);
+                data: services,
+            });
         } catch (error) {
-            console.error('Error fetching services:', error);
-
-            // Create gRPC error
-            const grpcError = {
-                name: 'ServiceError',
-                message: (error as Error).message || 'Failed to fetch services',
-                code: grpc.status.INTERNAL,
-                details: 'Internal server error while fetching services',
-            };
-
-            // Send error response
-            // callback(grpcError, null);
+            console.error('REST fetchService error:', error);
+            res.status(500).json({
+                success: false,
+                message:
+                    error instanceof Error
+                        ? error.message
+                        : 'Internal server error while fetching services',
+            });
         }
     };
 
-    deleteService = async (
-        call: { request: DeleteServiceRequest },
-        callback: (
-            error: grpc.ServiceError | null,
-            response?: CreateServiceResponse
-        ) => void
-    ) => {
+    deleteService = async (req: Request, res: Response): Promise<void> => {
         try {
-            const { serviceId } = call.request;
+            const { serviceId } = req.body;
 
-            const result = await this._serviceManageMent.deleteService(
+            const success = await this._serviceManageMent.deleteService(
                 serviceId
             );
 
-            const response: CreateServiceResponse = {
-                success: result,
-            };
-
-            callback(null, response);
+            res.status(200).json({
+                success,
+                message: success
+                    ? 'Service deleted successfully'
+                    : 'Failed to delete service',
+            });
         } catch (error) {
-            console.error('Error cancelling appointment:', error);
-            const grpcError = {
-                code: grpc.status.INTERNAL,
-                message: (error as Error).message,
-            };
+            console.error('REST deleteService error:', error);
+            res.status(500).json({
+                success: false,
+                message:
+                    error instanceof Error
+                        ? error.message
+                        : 'Internal server error while deleting service',
+            });
         }
     };
 
-    editService = async (
-        call: { request: EditServiceRequest },
-        callback: (
-            error: grpc.ServiceError | null,
-            response?: CreateServiceResponse
-        ) => void
-    ) => {
+    editService = async (req: Request, res: Response): Promise<void> => {
         try {
-            const { serviceId, name, description } = call.request;
+            const { serviceId, name, description } = req.body;
 
-            const result = await this._serviceManageMent.editService(
+            const success = await this._serviceManageMent.editService(
                 serviceId,
                 name,
                 description
             );
 
-            const response: CreateServiceResponse = {
-                success: result,
-            };
-
-            callback(null, response);
+            res.status(200).json({
+                success,
+                message: success
+                    ? 'Service updated successfully'
+                    : 'Failed to update service',
+            });
         } catch (error) {
-            console.error('Error cancelling appointment:', error);
-            const grpcError = {
-                code: grpc.status.INTERNAL,
-                message: (error as Error).message,
-            };
+            console.error('REST editService error:', error);
+            res.status(500).json({
+                success: false,
+                message:
+                    error instanceof Error
+                        ? error.message
+                        : 'Internal server error while updating service',
+            });
         }
     };
 }

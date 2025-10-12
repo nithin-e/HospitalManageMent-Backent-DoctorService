@@ -5,12 +5,12 @@ import {
     FetchPrescriptionResponse,
     PrescriptionData,
 } from '../../types/Doctor.interface';
-import { IPriscriptionService } from '../interfaces/IprescriptionService';
 import { TYPES } from '../../types/inversify';
-import { IPriscriptionRepo } from '../../repositories/interfaces/IPriscriptionRepository';
+import { IPriscriptionRepo } from '../../repositories/interfaces/IPriscription.repository';
+import { IPrescriptionService } from '../interfaces/IPrescription.service';
 
 @injectable()
-export class PrescriptionService implements IPriscriptionService {
+export class PrescriptionService implements IPrescriptionService {
     constructor(
         @inject(TYPES.PriscriptionRepository)
         private _PrescriptionRepo: IPriscriptionRepo
