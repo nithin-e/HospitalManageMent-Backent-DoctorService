@@ -1,7 +1,8 @@
 import * as grpc from '@grpc/grpc-js';
 import { status } from '@grpc/grpc-js';
 import {
-    AllAppointmentsResponse,
+    AfterTheConsultationRequest,
+    AfterTheConsultationResponse,
     appointmentaData,
     AppointmentRequest,
     CancelAppointmentRequest,
@@ -20,6 +21,7 @@ import {
     UserAppointmentsResponse,
 } from '../types/Doctor.interface';
 import { Response, Request } from 'express';
+import { ServerUnaryCall, sendUnaryData } from '@grpc/grpc-js';
 
 import { TYPES } from '../types/inversify';
 import { FilteringDoctorAppointmentsMapper } from '../mapers/chatMessage.mapper';
@@ -37,21 +39,46 @@ export class AppointmentController {
         private _appointMentService: IAppointmentService
     ) {}
 
-   makeAppointment = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const appointmentData = req.body;
+    makeAppointment = async (req: Request, res: Response): Promise<void> => {
+        try {
+            console.log('Incoming webhook payload:', req.body);
 
-      const dbResponse = await this._appointMentService.makeAppointment(appointmentData);
+            const eventType = req.body.eventType;
+            const eventData = req.body.eventData;
 
-      res.status(200).json({
-        success: true,
-        message: "Appointment booked successfully",
-        appointment_id: dbResponse.id,
-      });
-    } catch (error) {
-      console.error("Error in makeAppointment controller:", error);
-    }
-  };
+            const appointmentData: AppointmentRequest = {
+                patientName: eventData?.customer_details?.name || '',
+                patientEmail: eventData?.metadata?.patientEmail || '',
+                patientPhone: eventData?.customer_details?.phone || '',
+                appointmentDate: eventData?.metadata?.appointmentDate || '',
+                appointmentTime: eventData?.metadata?.appointmentTime || '',
+                notes: eventData?.metadata?.notes || '',
+                doctorName: eventData?.metadata?.doctorName || '',
+                specialty: eventData?.metadata?.specialty || '',
+                userEmail: eventData?.metadata?.userEmail || '',
+                userId: eventData?.metadata?.patientId || '',
+                doctorId: eventData?.metadata?.doctorId || '',
+            };
+
+            // Call service layer
+            const dbResponse = await this._appointMentService.makeAppointment(
+                appointmentData
+            );
+
+            res.status(200).json({
+                success: true,
+                message: 'Appointment booked successfully',
+                appointment_id: dbResponse.id,
+            });
+        } catch (error) {
+            console.error('Error in makeAppointment controller:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Internal Server Error',
+                error: (error as Error).message,
+            });
+        }
+    };
 
     fetchUserAppointments = async (
         req: Request,
@@ -70,7 +97,6 @@ export class AppointmentController {
                     validatedLimit
                 );
 
-            // Send success response
             res.status(200).json({
                 success: response.success,
                 message: response.message,
@@ -98,15 +124,14 @@ export class AppointmentController {
         res: Response
     ): Promise<void> => {
         try {
-            let { page = '1', limit = '10' } = req.query;
+            const { page = '1', limit = '10', email } = req.body;
 
-            // Convert and validate pagination values
             const validatedPage = Math.max(1, Number(page));
             const validatedLimit = Math.min(Math.max(1, Number(limit)), 100);
 
-            // Call your appointment service method
             const response =
                 await this._appointMentService.fetchAllUserAppointments(
+                    email,
                     validatedPage,
                     validatedLimit
                 );
@@ -177,10 +202,6 @@ export class AppointmentController {
                     rescheduleData
                 );
 
-            console.log(
-                '✅ Appointment rescheduled successfully via RabbitMQ:',
-                dbResponse
-            );
             return {
                 success: true,
                 data: dbResponse,
@@ -296,6 +317,41 @@ export class AppointmentController {
                 message: errorMessage,
                 error: errorResponse,
             });
+        }
+    };
+
+    updateAppointmentAfterConsultation = async (
+        call: ServerUnaryCall<
+            AfterTheConsultationRequest,
+            AfterTheConsultationResponse
+        >,
+        callback: sendUnaryData<AfterTheConsultationResponse>
+    ): Promise<AfterTheConsultationResponse> => {
+        try {
+            const { appointmentId, endedBy } = call.request;
+
+            if (!appointmentId || !endedBy) {
+                throw new Error('Both appointmentId and endedBy are required');
+            }
+
+            const result =
+                await this._appointMentService.updateAppointmentAfterConsultation(
+                    {
+                        appointmentId,
+                        endedBy,
+                    }
+                );
+
+            const response: AfterTheConsultationResponse = {
+                success: true,
+                patientEmail: result?.patientEmail || '',
+            };
+
+            callback(null, response);
+            return response;
+        } catch (error) {
+            console.error('updateAppointmentAfterConsultation error:', error);
+            throw error;
         }
     };
 }

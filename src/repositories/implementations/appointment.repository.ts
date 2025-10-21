@@ -7,6 +7,7 @@ import {
     appointmentaData,
     AppointmentRequest,
     AppointmentResponse,
+    AppointmentUpdateResponse,
     CancelAppointmentRequest,
     CancelAppointmentResponse,
     CancelData,
@@ -25,7 +26,7 @@ import { injectable } from 'inversify';
 import { convertToDbDateFormat } from '../../utility/timeFormatter';
 
 @injectable()
-export  class AppontMentRepository implements IAppointmentRepository {
+export class AppontMentRepository implements IAppointmentRepository {
     createAppointment = async (
         appointmentData: AppointmentRequest
     ): Promise<AppointmentResponse> => {
@@ -188,21 +189,33 @@ export  class AppontMentRepository implements IAppointmentRepository {
     };
 
     fetchAllUserAppointments = async (
-        page: number,
-        limit: number
+        email?: string,
+        page: number = 1,
+        limit: number = 10
     ): Promise<AllAppointmentsResponse> => {
         try {
             const skip = (page - 1) * limit;
 
+            // Build query dynamically: if email is provided, filter by doctorEmail
+            const query: any = {};
+            if (email && email.trim() !== '') {
+                query.doctorEmail = email.trim().toLowerCase();
+            }
+
+            console.log('Querying appointments with:', query);
+
+            // Fetch appointments and total count in parallel
             const [appointments, totalAppointments] = await Promise.all([
-                AppointmentModel.find()
+                AppointmentModel.find(query)
                     .sort({ appointmentDate: 1, appointmentTime: 1 })
                     .skip(skip)
                     .limit(limit)
                     .lean()
                     .exec(),
-                AppointmentModel.countDocuments(),
+                AppointmentModel.countDocuments(query),
             ]);
+
+            console.log('Appointments fetched:', appointments.length, 'Total matching:', totalAppointments);
 
             const totalPages = Math.ceil(totalAppointments / limit);
 
@@ -244,9 +257,7 @@ export  class AppontMentRepository implements IAppointmentRepository {
             };
         } catch (error) {
             console.error('Error fetching user appointments:', error);
-            throw new Error(
-                `Failed to fetch appointments: ${(error as Error).message}`
-            );
+            throw new Error(`Failed to fetch appointments: ${(error as Error).message}`);
         }
     };
 
@@ -475,6 +486,9 @@ export  class AppontMentRepository implements IAppointmentRepository {
         appointmentData: appointmentaData
     ): Promise<Cancelres> => {
         try {
+
+            console.log('bro check the appointment data while the cancel appointment',appointmentData);
+            
             const appointment = await AppointmentModel.findOne({
                 patientEmail: appointmentData.patientEmail,
                 doctorId: appointmentData.doctor_id,
@@ -653,4 +667,55 @@ export  class AppontMentRepository implements IAppointmentRepository {
             };
         }
     }
+
+    updateAppointmentAfterConsultation = async (
+        appointmentId: string,
+        endedBy: string
+    ): Promise<AppointmentUpdateResponse> => {
+        try {
+            // First, fetch the appointment to get the userId
+            const appointment = await AppointmentModel.findById(appointmentId);
+
+            if (!appointment) {
+                return {
+                    success: false,
+                    error: 'Appointment not found',
+                };
+            }
+
+            // Extract userId from the appointment
+            const patientEmail = appointment.patientEmail;
+
+            // Only update if ended by doctor
+            if (endedBy === 'doctor') {
+                const updatedAppointment =
+                    await AppointmentModel.findByIdAndUpdate(
+                        appointmentId,
+                        {
+                            status: 'completed',
+                        },
+                        { new: true }
+                    );
+
+                return {
+                    success: true,
+                    patientEmail: patientEmail?.toString() || '',
+                };
+            }
+
+            return {
+                success: true,
+                patientEmail: patientEmail?.toString() || '',
+            };
+        } catch (error) {
+            console.error('Repository error updating appointment:', error);
+            return {
+                success: false,
+                error:
+                    error instanceof Error
+                        ? error.message
+                        : 'Database error occurred',
+            };
+        }
+    };
 }

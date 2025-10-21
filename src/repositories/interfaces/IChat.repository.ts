@@ -14,8 +14,5 @@ export interface IChatRepository {
     userId: string,
     doctorId: string
   ): Promise<ConversationDbFetchResponse>;
-  updateAppointmentAfterConsultation(
-    appointmentId: string,
-    endedBy: string
-  ): Promise<AppointmentUpdateResponse>;
+
 }

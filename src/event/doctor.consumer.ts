@@ -4,15 +4,12 @@ import { AppointmentController } from "../controllers/appointment.controller";
 import { ChatController } from "../controllers/chat.controller";
 import { TYPES } from "../types/inversify";
 
-// Get controllers from inversify container
 export const chatController = container.get<ChatController>(TYPES.ChatController);
-export const appointmentController = container.get<AppointmentController>(
-  TYPES.AppointmentController
-);
+export const appointmentController = container.get<AppointmentController>(TYPES.AppointmentController);
 
 export class DoctorConsumer {
-  ch: any;
-  conn: any;
+  private ch: any;
+  private conn: any;
   private isRunning: boolean = false;
 
   constructor(
@@ -22,7 +19,7 @@ export class DoctorConsumer {
 
   async start() {
     if (this.isRunning) {
-      console.log("⚠️ Consumer is already running");
+      console.log("⚠️ DoctorConsumer is already running");
       return;
     }
 
@@ -32,11 +29,11 @@ export class DoctorConsumer {
       this.ch = ch;
       this.isRunning = true;
 
-      console.log("🚀 DoctorService consumer started");
+      console.log("🚀 DoctorService consumer started successfully");
 
       await ch.prefetch(1);
 
-      // ===== Chat message queue =====
+      // ===================== 💬 Chat Message Queue =====================
       const chatQueue = "doctor.message.store";
       await ch.assertQueue(chatQueue, { durable: true });
       await ch.bindQueue(chatQueue, "healNova", chatQueue);
@@ -48,10 +45,7 @@ export class DoctorConsumer {
           try {
             console.log("💬 Received message from doctor.message.store queue");
             const messageData = JSON.parse(msg.content.toString());
-
-            // Call ChatController method
             await this.chatController.storeMessageInDb(messageData);
-
             ch.ack(msg);
             console.log("✅ Chat message processed successfully");
           } catch (err) {
@@ -62,7 +56,7 @@ export class DoctorConsumer {
         { noAck: false }
       );
 
-      // ===== Appointment reschedule queue =====
+      // ===================== 📅 Appointment Reschedule Queue =====================
       const rescheduleQueue = "doctor.appointment.reschedule";
       await ch.assertQueue(rescheduleQueue, { durable: true });
       await ch.bindQueue(rescheduleQueue, "healNova", rescheduleQueue);
@@ -72,28 +66,20 @@ export class DoctorConsumer {
         async (msg) => {
           if (!msg) return;
           try {
-            console.log(
-              "📅 Received message from doctor.appointment.reschedule queue"
-            );
+            console.log("📅 Received message from doctor.appointment.reschedule queue");
             const rescheduleData = JSON.parse(msg.content.toString());
-
-            
             await this.appointmentController.rescheduleAppointment(rescheduleData);
-
             ch.ack(msg);
             console.log("✅ Appointment reschedule processed successfully");
           } catch (err) {
-            console.error(
-              "❌ Appointment reschedule processing error:",
-              err
-            );
+            console.error("❌ Appointment reschedule processing error:", err);
             ch.nack(msg, false, false);
           }
         },
         { noAck: false }
       );
 
-      // ===== Connection & channel error handling =====
+      // ===================== ⚠️ Connection & Channel Error Handling =====================
       this.conn.on("error", (err: Error) => {
         console.error("❌ Consumer connection error:", err);
         this.isRunning = false;
@@ -104,12 +90,16 @@ export class DoctorConsumer {
         this.isRunning = false;
       });
 
-      this.ch.on("error", (err: Error) =>
-        console.error("❌ Consumer channel error:", err)
-      );
-      this.ch.on("close", () => console.warn("⚠️ Consumer channel closed"));
+      this.ch.on("error", (err: Error) => {
+        console.error("❌ Consumer channel error:", err);
+      });
+
+      this.ch.on("close", () => {
+        console.warn("⚠️ Consumer channel closed");
+      });
+
     } catch (error) {
-      console.error("❌ Failed to start consumer:", error);
+      console.error("❌ Failed to start DoctorConsumer:", error);
       this.isRunning = false;
       throw error;
     }
@@ -129,7 +119,7 @@ export class DoctorConsumer {
         console.log("✅ RabbitMQ connection closed");
       }
     } catch (error) {
-      console.error("❌ Error stopping consumer:", error);
+      console.error("❌ Error stopping DoctorConsumer:", error);
     }
   }
 

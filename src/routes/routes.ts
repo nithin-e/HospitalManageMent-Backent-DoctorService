@@ -42,10 +42,13 @@ doctorRoute.post('/deleteService/:serviceId',serviceManageMentController.deleteS
 doctorRoute.post('/editService/:serviceId',serviceManageMentController.editService)
 doctorRoute.post('/fectingAppointMentSlotes',slotManagementController.fetchAppointmentSlots)
 doctorRoute.post('/fetchDoctorSlots',slotManagementController.fetchDoctorSlots)
+doctorRoute.post('/FecthAppointMentForAdmin',appointmentController.fetchAllUserAppointments)
+doctorRoute.post('/appointment-slots',slotManagementController.storeAppointmentSlots)
+doctorRoute.post('/stripe-webhook',appointmentController.makeAppointment)
 
 
-
-
+// blockingDoctor 
+// AddPrescription
 
 
 

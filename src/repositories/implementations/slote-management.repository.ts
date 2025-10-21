@@ -16,6 +16,7 @@ import {
 import { replicateTimeSlotsForDates } from '../../utility/replicateTimeSlotsForDates';
 import { convertTo12HourFormat } from '../../utility/timeFormatter';
 import { ISlotManagementRepository } from '../interfaces/ISlot-meanagement-repository';
+import { generateRecurringDates } from '../../utility/generateRecurringDates';
 
 @injectable()
 export class SloteManagementRepository implements ISlotManagementRepository {
@@ -120,9 +121,12 @@ export class SloteManagementRepository implements ISlotManagementRepository {
         }
     };
 
-    private createAppointmentSlots = async (
+   createAppointmentSlots = async (
     appointmentData: AppointmentSlotsData
   ): Promise<DbResponse> => {
+
+    console.log('hitting req createAppointmentSlots');
+    
     try {
       const {
         doctor_email,
@@ -135,18 +139,21 @@ export class SloteManagementRepository implements ISlotManagementRepository {
 
       let allTimeSlots: DateTimeSlots[] = [...time_slots];
       let allSelectedDates: string[] = [...selected_dates];
-
+   console.log('date_range&&',date_range,'create_recurring',create_recurring);
+   
     
-      if (date_range === "oneWeek" && create_recurring) {
-        const recurringDates =this.generateRecurringDates(
-          selected_dates,
-          recurring_months
-        );
+      if (date_range === "oneWeek" || create_recurring) {
 
-        const recurringTimeSlots = this.replicateTimeSlotsForDates(
-          time_slots,
-          recurringDates
-        );
+
+      const recurringDates =  generateRecurringDates(selected_dates,recurring_months)
+
+      console.log('check this recurringDates',recurringDates);
+      
+
+       const recurringTimeSlots =   replicateTimeSlotsForDates( time_slots, recurringDates)
+
+       console.log('and check this recurringTimeSlots ',recurringTimeSlots);
+       
 
         allTimeSlots = [...time_slots, ...recurringTimeSlots];
         allSelectedDates = [...selected_dates, ...recurringDates];

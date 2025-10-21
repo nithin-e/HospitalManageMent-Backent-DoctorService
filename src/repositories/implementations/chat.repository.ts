@@ -116,15 +116,7 @@ export class ChatRepository implements IChatRepository {
         }
     };
 
-    /**
-     * Fetches conversations between a user and a doctor,
-     * along with all related messages for each conversation.
-     *
-     * @param userId - user identifier
-     * @param doctorId - doctor identifier
-     * @returns Promise resolving with conversation details and messages
-     */
-
+ 
     fetchConversations = async (
         userId: string,
         doctorId: string
@@ -193,63 +185,6 @@ export class ChatRepository implements IChatRepository {
         }
     };
 
-    /**
-     * Updates an appointment status after consultation ends.
-     * If ended by doctor, status is marked as completed.
-     *
-     * @param appointmentId - appointment identifier
-     * @param endedBy - who ended the consultation (doctor/patient)
-     * @returns Promise resolving with update result and patient email
-     */
+   
 
-    updateAppointmentAfterConsultation = async (
-        appointmentId: string,
-        endedBy: string
-    ): Promise<AppointmentUpdateResponse> => {
-        try {
-            // First, fetch the appointment to get the userId
-            const appointment = await AppointmentModel.findById(appointmentId);
-
-            if (!appointment) {
-                return {
-                    success: false,
-                    error: 'Appointment not found',
-                };
-            }
-
-            // Extract userId from the appointment
-            const patientEmail = appointment.patientEmail;
-
-            // Only update if ended by doctor
-            if (endedBy === 'doctor') {
-                const updatedAppointment =
-                    await AppointmentModel.findByIdAndUpdate(
-                        appointmentId,
-                        {
-                            status: 'completed',
-                        },
-                        { new: true }
-                    );
-
-                return {
-                    success: true,
-                    patientEmail: patientEmail?.toString() || '',
-                };
-            }
-
-            return {
-                success: true,
-                patientEmail: patientEmail?.toString() || '',
-            };
-        } catch (error) {
-            console.error('Repository error updating appointment:', error);
-            return {
-                success: false,
-                error:
-                    error instanceof Error
-                        ? error.message
-                        : 'Database error occurred',
-            };
-        }
-    };
 }

@@ -1,48 +1,43 @@
-import { Document } from 'mongoose';
-import AppointmentModel from '../entities/AppointmentModel';
-
-interface Appointment extends Document {
-  appointmentDate: string;   
-  appointmentTime: string;   
-  status: string;            
-  message?: string;
-  
-}
+import AppointmentModel from "../entities/AppointmentModel";
+import { Appointment } from "../types/Doctor.interface";
 
 export async function checkAppointments(): Promise<Appointment[]> {
   try {
     const now = new Date();
-    const currentHours = now.getHours().toString().padStart(2, '0');
-    const currentMinutes = now.getMinutes().toString().padStart(2, '0');
-    const todayDate = now.toISOString().split('T')[0]; // YYYY-MM-DD
+    const todayDate = now.toISOString().split('T')[0]; // "YYYY-MM-DD"
 
-    const appointments = (await AppointmentModel.find({
+    // ✅ Fetch today's scheduled appointments (string-based)
+    const appointments = await AppointmentModel.find({
       appointmentDate: todayDate,
-      status: 'scheduled',
-    })) as Appointment[];
+      status: { $regex: /^scheduled$/i },
+    }) as Appointment[];
 
     const startedAppointments: Appointment[] = [];
 
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
     for (const appt of appointments) {
-      const [time, meridian] = appt.appointmentTime.split(' '); 
-      const [hourStr, minute] = time.split(':');
+      if (!appt.appointmentTime) continue;
 
+      const [time, meridian] = appt.appointmentTime.split(' ');
+      const [hourStr, minuteStr] = time.split(':');
       let hour = parseInt(hourStr, 10);
-      if (meridian === 'PM' && hour < 12) hour += 12;
-      if (meridian === 'AM' && hour === 12) hour = 0;
+      const minute = parseInt(minuteStr, 10);
 
-      const apptHoursStr = hour.toString().padStart(2, '0');
-      const apptMinutesStr = minute.padStart(2, '0');
+      if (meridian?.toUpperCase() === 'PM' && hour < 12) hour += 12;
+      if (meridian?.toUpperCase() === 'AM' && hour === 12) hour = 0;
 
-      if (apptHoursStr === currentHours && apptMinutesStr === currentMinutes) {
-        
+      const apptMinutes = hour * 60 + minute;
+
+      // ✅ Check if appointment time is within ±2 minutes of now
+      if (Math.abs(apptMinutes - nowMinutes) <= 2) {
         startedAppointments.push(appt);
       }
     }
 
     return startedAppointments;
   } catch (error) {
-    console.error('Error in appointment logic:', error);
+    console.error('❌ Error in appointment logic:', error);
     return [];
   }
 }

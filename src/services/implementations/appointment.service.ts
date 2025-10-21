@@ -4,6 +4,8 @@ import {
     appointmentaData,
     AppointmentRequest,
     AppointmentResponse,
+    AppointmentUpdateParams,
+    AppointmentUpdateResponse,
     CancelAppointmentRequest,
     CancelAppointmentResponse,
     CancelData,
@@ -74,15 +76,19 @@ export class AppontMentService implements IAppointmentService {
     };
 
     fetchAllUserAppointments = async (
+        email: string,
         page: number,
         limit: number
     ): Promise<AllAppointmentsResponse> => {
         try {
             const response =
                 await this._appointmentRepository.fetchAllUserAppointments(
+                    email,
                     page,
                     limit
                 );
+                console.log('check the responce in service layer',response);
+                
             return response;
         } catch (error) {
             console.error(
@@ -127,13 +133,6 @@ export class AppontMentService implements IAppointmentService {
             throw error;
         }
     };
-
-    /**
-     * Cancels appointment requested by a user.
-     *
-     * @param cancelData - user cancel request
-     * @returns cancel response with status and message
-     */
 
     cancelAppointmentByUser = async (
         cancelData: CancelData
@@ -232,4 +231,27 @@ export class AppontMentService implements IAppointmentService {
             };
         }
     }
+
+    updateAppointmentAfterConsultation = async (
+        params: AppointmentUpdateParams
+    ): Promise<AppointmentUpdateResponse> => {
+        try {
+            const dbResponse =
+                await this._appointmentRepository.updateAppointmentAfterConsultation(
+                    params.appointmentId,
+                    params.endedBy
+                );
+
+            return dbResponse;
+        } catch (error) {
+            console.error('Error in service layer:', error);
+
+            return {
+                success: false,
+                error: `Service layer error: ${
+                    error instanceof Error ? error.message : 'Unknown error'
+                }`,
+            };
+        }
+    };
 }

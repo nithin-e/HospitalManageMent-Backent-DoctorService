@@ -32,13 +32,14 @@ export const doctorGrpcHandlers = {
   // StoreMessage: chatController.storeMessage,
   // fetchingConversations: chatController.fetchConversations,
   // AppointmentCancelingDueToUser: appointmentController.cancelUserAppointment,
-  // AfterTheConsultationUpdatingAppointMent: chatController.updateAppointmentAfterConsultation,
+  AfterTheConsultationUpdatingAppointMent: appointmentController.updateAppointmentAfterConsultation,
   // filteringDoctorAppoinments: appointmentController.filteringDoctorAppoinments,
   // makingAddPrescription: priscriptionController.CreatingPrescription,
   // fetchingPrescription: priscriptionController.fetchPrescription,
-  // doctorCancellingUserBookedAppointMent: appointmentController.doctorCancelAppointment,
+  doctorCancellingUserBookedAppointMent: appointmentController.doctorCancelAppointment,
   // addNewService: serviceManageMentController.createService,
   // fetchService: serviceManageMentController.fetchService,
   // deleteService: serviceManageMentController.deleteService,
   // editService: serviceManageMentController.editService,
 };
+// doctorCancellingUserBookedAppointMent

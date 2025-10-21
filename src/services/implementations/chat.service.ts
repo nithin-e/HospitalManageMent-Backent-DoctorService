@@ -64,12 +64,7 @@ export class ChatService implements IChatService {
         }
     };
 
-    /**
-     * Fetches conversations between a user and a doctor.
-     *
-     * @param messageData - contains userId and doctorId
-     * @returns Promise resolving with conversations list and success status
-     */
+   
     fetchConversations = async (
         messageData: ConversationFetchRequest
     ): Promise<ConversationServiceFetchResponse> => {
@@ -99,32 +94,6 @@ export class ChatService implements IChatService {
         }
     };
 
-    /**
-     * Updates an appointment record after consultation ends.
-     *
-     * @param params - appointment update parameters including appointmentId and endedBy
-     * @returns Promise resolving with update result (success/failure)
-     */
-    updateAppointmentAfterConsultation = async (
-        params: AppointmentUpdateParams
-    ): Promise<AppointmentUpdateResponse> => {
-        try {
-            const dbResponse =
-                await this._chatRepository.updateAppointmentAfterConsultation(
-                    params.appointmentId,
-                    params.endedBy
-                );
-
-            return dbResponse;
-        } catch (error) {
-            console.error('Error in service layer:', error);
-
-            return {
-                success: false,
-                error: `Service layer error: ${
-                    error instanceof Error ? error.message : 'Unknown error'
-                }`,
-            };
-        }
-    };
+    
+   
 }

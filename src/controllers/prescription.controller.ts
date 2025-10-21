@@ -1,10 +1,3 @@
-import * as grpc from '@grpc/grpc-js';
-import {
-    PrescriptionData,
-    PrescriptionResponse,
-    FetchPrescriptionRequest,
-    FetchPrescriptionResponse,
-} from '../types/Doctor.interface';
 import { inject, injectable } from 'inversify';
 import { TYPES } from '../types/inversify';
 import { IPrescriptionService } from '../services/interfaces/IPrescription.service';

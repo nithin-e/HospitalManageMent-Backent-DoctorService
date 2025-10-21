@@ -1,45 +1,50 @@
-type TimeSlot = {
-    date: string;
-    slots: string[];
-  };
- 
-export const replicateTimeSlotsForDates = (originalTimeSlots: any[], newDates: string[]) => {
-    // const replicatedSlots: TimeSlot[] = [];
-    const replicatedSlots: any = [];
-    
-   
-    const daySlotMap = new Map();
-    
-    
-    originalTimeSlots.forEach(slot => {
-      const date = new Date(slot.date);
-      const dayOfWeek = date.getDay(); 
-      
-    //   console.log(`Mapping day ${dayOfWeek} (${slot.date}) to slots:`, slot.slots);
-      daySlotMap.set(dayOfWeek, slot.slots);
-    });
+export const replicateTimeSlotsForDates = (
+  originalTimeSlots: TimeSlot[], 
+  newDates: string[]
+): TimeSlot[] => {
+  const replicatedSlots: TimeSlot[] = [];
   
-    // console.log('Day-to-slots mapping created:', Array.from(daySlotMap.entries()));
-  
+  // Map each day of week to its time slots
+  const daySlotMap = new Map<number, string[]>();
 
-    newDates.forEach(dateStr => {
-      const date = new Date(dateStr);
-      const dayOfWeek = date.getDay();
-      
-      if (daySlotMap.has(dayOfWeek)) {
-        replicatedSlots.push({
-          date: dateStr,
-          slots: [...daySlotMap.get(dayOfWeek)]
-        });
-        
-        // console.log(`Replicated slots for ${dateStr} (day ${dayOfWeek}):`, daySlotMap.get(dayOfWeek));
-      } else {
-        console.log(`No slots found for ${dateStr} (day ${dayOfWeek})`);
-      }
-    });
-  
-    // console.log('Total replicated slots created:', replicatedSlots.length);
-    return replicatedSlots;
-  };
-  
-  
+  originalTimeSlots.forEach(slot => {
+    const date = new Date(slot.date);
+    const dayOfWeek = date.getDay(); // 0 = Sunday, 1 = Monday, etc.
+
+    if (!daySlotMap.has(dayOfWeek)) {
+      daySlotMap.set(dayOfWeek, []);
+    }
+
+    // Merge slots for the same day (avoid duplicates)
+    const existingSlots = daySlotMap.get(dayOfWeek)!;
+    const uniqueSlots = [...new Set([...existingSlots, ...slot.slots])];
+    daySlotMap.set(dayOfWeek, uniqueSlots);
+  });
+
+  // Create time slots for each new date based on its day of week
+  newDates.forEach(dateStr => {
+    const date = new Date(dateStr);
+    const dayOfWeek = date.getDay();
+
+    if (daySlotMap.has(dayOfWeek)) {
+      replicatedSlots.push({
+        date: dateStr,
+        slots: [...daySlotMap.get(dayOfWeek)!],
+      });
+    } else {
+      console.warn(`No slots found for ${dateStr} (${getDayName(dayOfWeek)})`);
+    }
+  });
+
+  return replicatedSlots;
+};
+
+const getDayName = (dayOfWeek: number): string => {
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  return days[dayOfWeek];
+};
+
+type TimeSlot = {
+  date: string;
+  slots: string[];
+};

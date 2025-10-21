@@ -2,10 +2,9 @@ import amqp from "amqplib";
 
 function getRabbitUrl() {
   if (process.env.RABBIT_URL) return process.env.RABBIT_URL;
-  if (process.env.NODE_ENV === "dev" && process.env.RABBIT_URL_LOCAL)
-    return process.env.RABBIT_URL_LOCAL;
 
-  return "amqp://admin:admin123@rabbitmq:5672";
+
+  return "amqp://rabbitmq:5672"
 }
 
 const rabbitUrl = getRabbitUrl();

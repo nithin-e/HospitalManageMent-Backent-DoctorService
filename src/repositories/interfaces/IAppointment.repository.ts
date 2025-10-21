@@ -2,6 +2,7 @@ import {
   AllAppointmentsResponse,
   AppointmentRequest,
   AppointmentResponse,
+  AppointmentUpdateResponse,
   CancelAppointmentRequest,
   CancelAppointmentResponse,
   FetchAppointmentSlotsRequest,
@@ -24,6 +25,7 @@ export interface IAppointmentRepository extends IAppointmentSlotsRepository {
     limit: number
   ): Promise<UserAppointmentsResponse>;
   fetchAllUserAppointments(
+    email:string,
     page: number,
     limit: number
   ): Promise<AllAppointmentsResponse>;
@@ -32,5 +34,10 @@ export interface IAppointmentRepository extends IAppointmentSlotsRepository {
   ): Promise<CancelAppointmentResponse>;
 
     filteringDoctorAppoinments(params: SearchParam): Promise<FilteringResponse>;
+
+      updateAppointmentAfterConsultation(
+        appointmentId: string,
+        endedBy: string
+      ): Promise<AppointmentUpdateResponse>;
   
 }

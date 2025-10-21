@@ -1,12 +1,3 @@
-import * as grpc from '@grpc/grpc-js';
-import {
-    CreateServiceRequest,
-    CreateServiceResponse,
-    FetchServiceRequest,
-    FetchServiceResponse,
-    DeleteServiceRequest,
-    EditServiceRequest,
-} from '../types/Doctor.interface';
 import { inject, injectable } from 'inversify';
 import { TYPES } from '../types/inversify';
 import { IServiceManageMentRepository } from '../repositories/interfaces/IService-management-repository';
@@ -69,7 +60,7 @@ export class ServiceController {
 
     deleteService = async (req: Request, res: Response): Promise<void> => {
         try {
-            const { serviceId } = req.body;
+            const { serviceId } = req.params;
 
             const success = await this._serviceManageMent.deleteService(
                 serviceId
@@ -95,7 +86,8 @@ export class ServiceController {
 
     editService = async (req: Request, res: Response): Promise<void> => {
         try {
-            const { serviceId, name, description } = req.body;
+            const { name, description } = req.body;
+            const { serviceId } = req.params;
 
             const success = await this._serviceManageMent.editService(
                 serviceId,

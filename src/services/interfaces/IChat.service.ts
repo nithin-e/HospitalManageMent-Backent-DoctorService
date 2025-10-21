@@ -15,8 +15,6 @@ export interface IChatService {
   fetchConversations(
     messageData: ConversationFetchRequest
   ): Promise<ConversationServiceFetchResponse>;
-  updateAppointmentAfterConsultation(
-    params: AppointmentUpdateParams
-  ): Promise<AppointmentUpdateResponse>;
+
  
 }

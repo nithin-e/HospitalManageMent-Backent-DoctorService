@@ -678,3 +678,14 @@ export interface FetchPrescriptionResponse {
   patientEmail: string | null;
   doctorEmail: string | null;
 }
+
+
+export interface AfterTheConsultationRequest{
+   appointmentId :string ;
+  endedBy :string;
+}
+
+export interface AfterTheConsultationResponse {
+  success :boolean;
+ patientEmail:string;
+}
