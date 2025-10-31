@@ -1,4 +1,4 @@
-import {  IChatService } from '../interfaces/IChat.service';
+import { IChatService } from '../interfaces/IChat.service';
 import {
     AppointmentUpdateParams,
     AppointmentUpdateResponse,
@@ -11,27 +11,12 @@ import { inject, injectable } from 'inversify';
 import { TYPES } from '../../types/inversify';
 import { IChatRepository } from '../../repositories/interfaces/IChat.repository';
 
-/**
- * ChatHandlingService
- *
- * Service layer responsible for handling chat-related business logic
- * such as storing messages, fetching conversations, updating appointments,
- * and filtering doctor appointments.
- */
-
 @injectable()
 export class ChatService implements IChatService {
     constructor(
         @inject(TYPES.ChatRepository) private _chatRepository: IChatRepository
     ) {}
 
-    /**
-     * Stores a chat message into the database.
-     *
-     * @param messageData - message details including sender, receiver, and content
-     * @returns Promise resolving with service response containing success status,
-     *          messageId, conversationId, and doctorId
-     */
     storeMessage = async (
         messageData: ChatMessageStorageRequest
     ): Promise<ChatMessageServiceResponse> => {
@@ -64,7 +49,6 @@ export class ChatService implements IChatService {
         }
     };
 
-   
     fetchConversations = async (
         messageData: ConversationFetchRequest
     ): Promise<ConversationServiceFetchResponse> => {
@@ -93,7 +77,4 @@ export class ChatService implements IChatService {
             };
         }
     };
-
-    
-   
 }

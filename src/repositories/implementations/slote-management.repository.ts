@@ -12,9 +12,7 @@ import {
     Slot,
     DateTimeSlots,
 } from '../../types/Doctor.interface';
-// import { generateRecurringDates } from '../../utility/generateRecurringDates';
 import { replicateTimeSlotsForDates } from '../../utility/replicateTimeSlotsForDates';
-import { convertTo12HourFormat } from '../../utility/timeFormatter';
 import { ISlotManagementRepository } from '../interfaces/ISlot-meanagement-repository';
 import { generateRecurringDates } from '../../utility/generateRecurringDates';
 
@@ -121,214 +119,206 @@ export class SloteManagementRepository implements ISlotManagementRepository {
         }
     };
 
-   createAppointmentSlots = async (
-    appointmentData: AppointmentSlotsData
-  ): Promise<DbResponse> => {
-
-    console.log('hitting req createAppointmentSlots');
-    
-    try {
-      const {
-        doctor_email,
-        date_range,
-        selected_dates = [],
-        time_slots = [],
-        create_recurring = false,
-        recurring_months = 6,
-      } = appointmentData;
-
-      let allTimeSlots: DateTimeSlots[] = [...time_slots];
-      let allSelectedDates: string[] = [...selected_dates];
-   console.log('date_range&&',date_range,'create_recurring',create_recurring);
-   
-    
-      if (date_range === "oneWeek" || create_recurring) {
-
-
-      const recurringDates =  generateRecurringDates(selected_dates,recurring_months)
-
-      console.log('check this recurringDates',recurringDates);
-      
-
-       const recurringTimeSlots =   replicateTimeSlotsForDates( time_slots, recurringDates)
-
-       console.log('and check this recurringTimeSlots ',recurringTimeSlots);
-       
-
-        allTimeSlots = [...time_slots, ...recurringTimeSlots];
-        allSelectedDates = [...selected_dates, ...recurringDates];
-      }
-
-      const appointmentSlots = [];
-
-   
-      for (const timeSlot of allTimeSlots) {
-        const { date, slots } = timeSlot;
-
-        for (const time of slots) {
-          const convertedTime = this.convertTo12HourFormat(time);
-
-          appointmentSlots.push({
-            doctorEmail: doctor_email,
-            date: date,
-            time: convertedTime,
-            originalTime: time,
-            isBooked: false,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            isRecurring: create_recurring && !selected_dates.includes(date),
-          });
-        }
-      }
-
-      let insertedCount = 0;
-
-    
-      try {
-        const result = await AppointmentSlot.insertMany(appointmentSlots, {
-          ordered: false,
-        });
-        insertedCount = result.length;
-      } catch (err: any) {
-        console.error("Error inserting appointment slots:", err);
-        
-
-        if (err.insertedDocs) {
-          insertedCount = err.insertedDocs.length;
-        }
-      }
-
-      return {
-        success: true,
-        message: "Appointment slots created successfully",
-        slots_created: insertedCount,
-        dates: selected_dates,
-        slots_removed: 0,
-        slots_updated: 0,
-      };
-    } catch (error) {
-      console.error("Error in createAppointmentSlots:", error);
-      throw error;
-    }
-  };
-
-   private updateAppointmentSlots = async (
-    appointmentData: AppointmentSlotsData
-  ): Promise<DbResponse> => {
-    try {
-      const { doctor_email, removed_slot_ids = [], new_time_slots = [] } =
-        appointmentData;
-
-      let removedCount = 0;
-      let updatedCount = 0;
-
-      // Remove slots
-      if (removed_slot_ids.length > 0) {
-        const deleteResult = await AppointmentSlot.deleteMany({
-          _id: { $in: removed_slot_ids },
-          doctorEmail: doctor_email,
-          isBooked: false, // Only delete unbooked slots
-        });
-
-        removedCount = deleteResult.deletedCount || 0;
-
-        if (removedCount < removed_slot_ids.length) {
-          console.warn(
-            `Only ${removedCount} out of ${removed_slot_ids.length} slots were removed (some may be booked or not found)`
-          );
-        }
-      }
-
-      // Add new slots
-      if (new_time_slots.length > 0) {
-        const newSlots = new_time_slots.map((slot) => ({
-          doctorEmail: doctor_email,
-          date: slot.date,
-          time: slot.time,
-          isBooked: false,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        }));
+    createAppointmentSlots = async (
+        appointmentData: AppointmentSlotsData
+    ): Promise<DbResponse> => {
+        console.log('hitting req createAppointmentSlots');
 
         try {
-          const insertResult = await AppointmentSlot.insertMany(newSlots, {
-            ordered: false,
-          });
+            const {
+                doctor_email,
+                date_range,
+                selected_dates = [],
+                time_slots = [],
+                create_recurring = false,
+                recurring_months = 6,
+            } = appointmentData;
 
-          updatedCount = insertResult.length;
-        } catch (error: any) {
-          console.error("Error creating new appointment slots:", error);
-          
-          // Count successful inserts even if some failed
-          if (error.insertedDocs) {
-            updatedCount = error.insertedDocs.length;
-          }
+            let allTimeSlots: DateTimeSlots[] = [...time_slots];
+            let allSelectedDates: string[] = [...selected_dates];
+            console.log(
+                'date_range&&',
+                date_range,
+                'create_recurring',
+                create_recurring
+            );
+
+            if (date_range === 'oneWeek' || create_recurring) {
+                const recurringDates = generateRecurringDates(
+                    selected_dates,
+                    recurring_months
+                );
+
+                console.log('check this recurringDates', recurringDates);
+
+                const recurringTimeSlots = replicateTimeSlotsForDates(
+                    time_slots,
+                    recurringDates
+                );
+
+                console.log(
+                    'and check this recurringTimeSlots ',
+                    recurringTimeSlots
+                );
+
+                allTimeSlots = [...time_slots, ...recurringTimeSlots];
+                allSelectedDates = [...selected_dates, ...recurringDates];
+            }
+
+            const appointmentSlots = [];
+
+            for (const timeSlot of allTimeSlots) {
+                const { date, slots } = timeSlot;
+
+                for (const time of slots) {
+                    const convertedTime = this.convertTo12HourFormat(time);
+
+                    appointmentSlots.push({
+                        doctorEmail: doctor_email,
+                        date: date,
+                        time: convertedTime,
+                        originalTime: time,
+                        isBooked: false,
+                        createdAt: new Date(),
+                        updatedAt: new Date(),
+                        isRecurring:
+                            create_recurring && !selected_dates.includes(date),
+                    });
+                }
+            }
+
+            let insertedCount = 0;
+
+            try {
+                const result = await AppointmentSlot.insertMany(
+                    appointmentSlots,
+                    {
+                        ordered: false,
+                    }
+                );
+                insertedCount = result.length;
+            } catch (err: any) {
+                console.error('Error inserting appointment slots:', err);
+
+                if (err.insertedDocs) {
+                    insertedCount = err.insertedDocs.length;
+                }
+            }
+
+            return {
+                success: true,
+                message: 'Appointment slots created successfully',
+                slots_created: insertedCount,
+                dates: selected_dates,
+                slots_removed: 0,
+                slots_updated: 0,
+            };
+        } catch (error) {
+            console.error('Error in createAppointmentSlots:', error);
+            throw error;
         }
-      }
+    };
 
-      // Get all distinct dates for this doctor
-      const allSlots = await AppointmentSlot.distinct("date", {
-        doctorEmail: doctor_email,
-      });
+    private updateAppointmentSlots = async (
+        appointmentData: AppointmentSlotsData
+    ): Promise<DbResponse> => {
+        try {
+            const {
+                doctor_email,
+                removed_slot_ids = [],
+                new_time_slots = [],
+            } = appointmentData;
 
-      return {
-        success: true,
-        message: `Appointment slots updated successfully. Removed: ${removedCount}, Added: ${updatedCount}`,
-        slots_created: 0,
-        slots_removed: removedCount,
-        slots_updated: updatedCount,
-        dates: allSlots.sort(),
-      };
-    } catch (error) {
-      console.error("Error in updateAppointmentSlots:", error);
-      throw error;
-    }
-  };
+            let removedCount = 0;
+            let updatedCount = 0;
+
+            if (removed_slot_ids.length > 0) {
+                const deleteResult = await AppointmentSlot.deleteMany({
+                    _id: { $in: removed_slot_ids },
+                    doctorEmail: doctor_email,
+                    isBooked: false,
+                });
+
+                removedCount = deleteResult.deletedCount || 0;
+
+                if (removedCount < removed_slot_ids.length) {
+                    console.warn(
+                        `Only ${removedCount} out of ${removed_slot_ids.length} slots were removed (some may be booked or not found)`
+                    );
+                }
+            }
+
+            if (new_time_slots.length > 0) {
+                const newSlots = new_time_slots.map((slot) => ({
+                    doctorEmail: doctor_email,
+                    date: slot.date,
+                    time: slot.time,
+                    isBooked: false,
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                }));
+
+                try {
+                    const insertResult = await AppointmentSlot.insertMany(
+                        newSlots,
+                        {
+                            ordered: false,
+                        }
+                    );
+
+                    updatedCount = insertResult.length;
+                } catch (error: any) {
+                    console.error(
+                        'Error creating new appointment slots:',
+                        error
+                    );
+
+                    if (error.insertedDocs) {
+                        updatedCount = error.insertedDocs.length;
+                    }
+                }
+            }
+
+            const allSlots = await AppointmentSlot.distinct('date', {
+                doctorEmail: doctor_email,
+            });
+
+            return {
+                success: true,
+                message: `Appointment slots updated successfully. Removed: ${removedCount}, Added: ${updatedCount}`,
+                slots_created: 0,
+                slots_removed: removedCount,
+                slots_updated: updatedCount,
+                dates: allSlots.sort(),
+            };
+        } catch (error) {
+            console.error('Error in updateAppointmentSlots:', error);
+            throw error;
+        }
+    };
 
     storeAppointmentSlots = async (
-    appointmentData: AppointmentSlotsData
-  ): Promise<DbResponse> => {
-    try {
-      const { action } = appointmentData;
+        appointmentData: AppointmentSlotsData
+    ): Promise<DbResponse> => {
+        try {
+            const { action } = appointmentData;
 
-      if (action === "update") {
-        return await this.updateAppointmentSlots(appointmentData);
-      } else {
-        return await this.createAppointmentSlots(appointmentData);
-      }
-    } catch (error) {
-      console.error("Error in appointment slots repository:", error);
-      throw error;
-    }
-  };
+            if (action === 'update') {
+                return await this.updateAppointmentSlots(appointmentData);
+            } else {
+                return await this.createAppointmentSlots(appointmentData);
+            }
+        } catch (error) {
+            console.error('Error in appointment slots repository:', error);
+            throw error;
+        }
+    };
 
     private convertTo12HourFormat = (time: string): string => {
-    // Add your conversion logic here
-    const [hours, minutes] = time.split(":");
-    const hour = parseInt(hours);
-    const ampm = hour >= 12 ? "PM" : "AM";
-    const hour12 = hour % 12 || 12;
-    return `${hour12}:${minutes} ${ampm}`;
-  };
-
-  private generateRecurringDates = (
-    dates: string[],
-    months: number
-  ): string[] => {
-    // Add your recurring date generation logic here
-    const recurringDates: string[] = [];
-    // Implementation depends on your business logic
-    return recurringDates;
-  };
-
-
-   private replicateTimeSlotsForDates = (
-    timeSlots: DateTimeSlots[],
-    dates: string[]
-  ): DateTimeSlots[] => {
-    // Add your time slot replication logic here
-    const replicatedSlots: DateTimeSlots[] = [];
-    // Implementation depends on your business logic
-    return replicatedSlots;
-  };
+        const [hours, minutes] = time.split(':');
+        const hour = parseInt(hours);
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const hour12 = hour % 12 || 12;
+        return `${hour12}:${minutes} ${ampm}`;
+    };
 }

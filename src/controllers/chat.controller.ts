@@ -1,8 +1,4 @@
-import * as grpc from '@grpc/grpc-js';
-import {
-    ChatMessageGrpcCallback,
-    ChatMessageGrpcRequest,
-} from '../types/Doctor.interface';
+import { ChatMessageGrpcRequest, HttpStatusCode } from '../types/Doctor.interface';
 import { ChatMessageMapper } from '../mapers/chatMessage.mapper';
 import { inject, injectable } from 'inversify';
 import { TYPES } from '../types/inversify';
@@ -34,7 +30,7 @@ export class ChatController {
             const { userId, doctorId } = req.body;
 
             if (!userId || !doctorId) {
-                res.status(400).json({
+                res.status(HttpStatusCode.BAD_REQUEST).json({
                     success: false,
                     message: 'Both userId and doctorId are required',
                 });
@@ -46,7 +42,7 @@ export class ChatController {
                 doctorId,
             });
 
-            res.status(200).json({
+            res.status(HttpStatusCode.OK).json({
                 success: dbResponse.success,
                 conversations: dbResponse.conversations || [],
                 message:
@@ -55,7 +51,7 @@ export class ChatController {
         } catch (error) {
             console.error('REST fetchConversations error:', error);
 
-            res.status(500).json({
+            res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
                 message:
                     error instanceof Error

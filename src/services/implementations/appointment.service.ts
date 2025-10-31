@@ -48,7 +48,6 @@ export class AppontMentService implements IAppointmentService {
                 doctorId: request.doctorId,
             };
 
-            // Pass to repository
             return await this._appointmentRepository.createAppointment(
                 appointmentData
             );
@@ -87,8 +86,7 @@ export class AppontMentService implements IAppointmentService {
                     page,
                     limit
                 );
-                console.log('check the responce in service layer',response);
-                
+
             return response;
         } catch (error) {
             console.error(

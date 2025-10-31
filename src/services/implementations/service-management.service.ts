@@ -1,14 +1,13 @@
 import { inject, injectable } from 'inversify';
 import { IServiceManageMentService } from '../interfaces/IService-management.service';
 import { TYPES } from '../../types/inversify';
-import { IServiceManageMentRepository } from '../../repositories/interfaces/IService-management-repository';
 import { IService } from '../../entities/serviceModel';
 
 @injectable()
 export class ServiceManageMentService implements IServiceManageMentService {
     constructor(
         @inject(TYPES.ServiceManageMentRepository)
-        private _serviceManageMent: IServiceManageMentRepository
+        private _serviceManageMent: IServiceManageMentService
     ) {}
 
     createService = async (

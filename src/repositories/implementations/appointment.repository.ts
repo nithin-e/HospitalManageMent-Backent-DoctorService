@@ -31,7 +31,6 @@ export class AppontMentRepository implements IAppointmentRepository {
         appointmentData: AppointmentRequest
     ): Promise<AppointmentResponse> => {
         try {
-            // Find the specific appointment slot
             const appointmentSlot = await AppointmentSlot.findOne({
                 doctorEmail: appointmentData.patientEmail,
                 date: appointmentData.appointmentDate,
@@ -196,7 +195,6 @@ export class AppontMentRepository implements IAppointmentRepository {
         try {
             const skip = (page - 1) * limit;
 
-            // Build query dynamically: if email is provided, filter by doctorEmail
             const query: any = {};
             if (email && email.trim() !== '') {
                 query.doctorEmail = email.trim().toLowerCase();
@@ -215,7 +213,12 @@ export class AppontMentRepository implements IAppointmentRepository {
                 AppointmentModel.countDocuments(query),
             ]);
 
-            console.log('Appointments fetched:', appointments.length, 'Total matching:', totalAppointments);
+            console.log(
+                'Appointments fetched:',
+                appointments.length,
+                'Total matching:',
+                totalAppointments
+            );
 
             const totalPages = Math.ceil(totalAppointments / limit);
 
@@ -257,7 +260,9 @@ export class AppontMentRepository implements IAppointmentRepository {
             };
         } catch (error) {
             console.error('Error fetching user appointments:', error);
-            throw new Error(`Failed to fetch appointments: ${(error as Error).message}`);
+            throw new Error(
+                `Failed to fetch appointments: ${(error as Error).message}`
+            );
         }
     };
 
@@ -290,9 +295,6 @@ export class AppontMentRepository implements IAppointmentRepository {
         }
     };
 
-    /**
-     * Reschedules an appointment for a user.
-     */
     rescheduleAppointment = async (
         rescheduleData: RescheduleAppointmentRequest
     ): Promise<RescheduleAppointmentResponse> => {
@@ -390,9 +392,6 @@ export class AppontMentRepository implements IAppointmentRepository {
         }
     };
 
-    /**
-     * Cancels an appointment from user side.
-     */
     cancelAppointmentByUser = async (
         cancelData: CancelData
     ): Promise<CancelResponse> => {
@@ -486,9 +485,11 @@ export class AppontMentRepository implements IAppointmentRepository {
         appointmentData: appointmentaData
     ): Promise<Cancelres> => {
         try {
+            console.log(
+                'bro check the appointment data while the cancel appointment',
+                appointmentData
+            );
 
-            console.log('bro check the appointment data while the cancel appointment',appointmentData);
-            
             const appointment = await AppointmentModel.findOne({
                 patientEmail: appointmentData.patientEmail,
                 doctorId: appointmentData.doctor_id,
@@ -673,7 +674,6 @@ export class AppontMentRepository implements IAppointmentRepository {
         endedBy: string
     ): Promise<AppointmentUpdateResponse> => {
         try {
-            // First, fetch the appointment to get the userId
             const appointment = await AppointmentModel.findById(appointmentId);
 
             if (!appointment) {
@@ -683,10 +683,8 @@ export class AppontMentRepository implements IAppointmentRepository {
                 };
             }
 
-            // Extract userId from the appointment
             const patientEmail = appointment.patientEmail;
 
-            // Only update if ended by doctor
             if (endedBy === 'doctor') {
                 const updatedAppointment =
                     await AppointmentModel.findByIdAndUpdate(

@@ -3,14 +3,14 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {
-    "dev": "nodemon src/server.ts",
-    "build": "tsc && npm run copy-assets",
-    "copy-assets": "cp -r src/proto dist/proto 2>/dev/null || mkdir -p dist/proto && find src -name '*.proto' -exec cp {} dist/proto/ \\; || echo 'No proto files to copy'",
-    "start": "node dist/server.js",
-    "lint": "eslint",
-    "lint:fix": "eslint --fix"
-  },
+"scripts": {
+  "dev": "nodemon src/server.ts",
+  "build": "tsc && npm run copy-protos",
+  "copy-protos": "copyfiles -u 1 \"src/proto/**/*\" dist/",
+  "start": "node dist/server.js",
+  "lint": "eslint",
+  "lint:fix": "eslint --fix"
+},
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -21,6 +21,7 @@
     "@types/express": "^5.0.1",
     "@types/morgan": "^1.9.10",
     "@types/node": "^22.15.3",
+    "copyfiles": "^2.4.1",
     "eslint": "^9.36.0",
     "eslint-plugin-react": "^7.37.5",
     "globals": "^16.4.0",

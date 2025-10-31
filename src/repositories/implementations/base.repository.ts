@@ -1,39 +1,39 @@
-import { Model, Document, FilterQuery } from "mongoose";
-import { IBaseRepository } from "../interfaces/IBaseRepository";
+import { Model, Document, FilterQuery } from 'mongoose';
+import { IBaseRepository } from '../interfaces/IBaseRepository';
 
 export class BaseRepository<T extends Document> implements IBaseRepository<T> {
-  protected model: Model<T>;
+    protected model: Model<T>;
 
-  constructor(model: Model<T>) {
-    this.model = model;
-  }
+    constructor(model: Model<T>) {
+        this.model = model;
+    }
 
-  async create(data: Partial<T>): Promise<T> {
-    const created = new this.model(data);
-    return await created.save();
-  }
+    async create(data: Partial<T>): Promise<T> {
+        const created = new this.model(data);
+        return await created.save();
+    }
 
-  async findById(id: string): Promise<T | null> {
-    return this.model.findById(id);
-  }
+    async findById(id: string): Promise<T | null> {
+        return this.model.findById(id);
+    }
 
-  async findByEmail(email: string): Promise<T | null> {
-    return this.model.findOne({ email } as any);
-  }
+    async findByEmail(email: string): Promise<T | null> {
+        return this.model.findOne({ email } as any);
+    }
 
-  async updateById(id: string, updateData: Partial<T>): Promise<T | null> {
-    return this.model.findByIdAndUpdate(id, updateData, { new: true });
-  }
+    async updateById(id: string, updateData: Partial<T>): Promise<T | null> {
+        return this.model.findByIdAndUpdate(id, updateData, { new: true });
+    }
 
-  async findOne(email: string): Promise<T | null> {
-    return this.model.findOne({ email } as any);
-  }
+    async findOne(email: string): Promise<T | null> {
+        return this.model.findOne({ email } as any);
+    }
 
-  async find(filter: FilterQuery<T>): Promise<T[]> {
-    return this.model.find(filter);
-  }
+    async find(filter: FilterQuery<T>): Promise<T[]> {
+        return this.model.find(filter);
+    }
 
-  async deleteById(id: string): Promise<T | null> {
-    return this.model.findByIdAndDelete(id);
-  }
+    async deleteById(id: string): Promise<T | null> {
+        return this.model.findByIdAndDelete(id);
+    }
 }

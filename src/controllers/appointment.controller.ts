@@ -5,20 +5,12 @@ import {
     AfterTheConsultationResponse,
     appointmentaData,
     AppointmentRequest,
-    CancelAppointmentRequest,
-    CancelAppointmentResponse,
-    CancelData,
     Cancelres,
-    CancelResponse,
-    ControllerAppointmentResponse,
     Data,
     FetchDoctorSlotsRequest,
-    filteringDoctorAppoinmentsRequest,
-    filteringDoctorAppoinmentsResponse,
+    HttpStatusCode,
+    PaymentEventData,
     RescheduleAppointmentRequest,
-    RescheduleAppointmentResponse,
-    UserAppointmentsRequest,
-    UserAppointmentsResponse,
 } from '../types/Doctor.interface';
 import { Response, Request } from 'express';
 import { ServerUnaryCall, sendUnaryData } from '@grpc/grpc-js';
@@ -39,46 +31,33 @@ export class AppointmentController {
         private _appointMentService: IAppointmentService
     ) {}
 
-    makeAppointment = async (req: Request, res: Response): Promise<void> => {
-        try {
-            console.log('Incoming webhook payload:', req.body);
+    
 
-            const eventType = req.body.eventType;
-            const eventData = req.body.eventData;
+    handleAppointmentFromPayment = async (eventData: PaymentEventData) => {
+  try {
+    console.log("📥 Received appointment event from Payment Service:", eventData);
 
-            const appointmentData: AppointmentRequest = {
-                patientName: eventData?.customer_details?.name || '',
-                patientEmail: eventData?.metadata?.patientEmail || '',
-                patientPhone: eventData?.customer_details?.phone || '',
-                appointmentDate: eventData?.metadata?.appointmentDate || '',
-                appointmentTime: eventData?.metadata?.appointmentTime || '',
-                notes: eventData?.metadata?.notes || '',
-                doctorName: eventData?.metadata?.doctorName || '',
-                specialty: eventData?.metadata?.specialty || '',
-                userEmail: eventData?.metadata?.userEmail || '',
-                userId: eventData?.metadata?.patientId || '',
-                doctorId: eventData?.metadata?.doctorId || '',
-            };
-
-            // Call service layer
-            const dbResponse = await this._appointMentService.makeAppointment(
-                appointmentData
-            );
-
-            res.status(200).json({
-                success: true,
-                message: 'Appointment booked successfully',
-                appointment_id: dbResponse.id,
-            });
-        } catch (error) {
-            console.error('Error in makeAppointment controller:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Internal Server Error',
-                error: (error as Error).message,
-            });
-        }
+    const appointmentData: AppointmentRequest = {
+      patientName: eventData?.customer_details?.name || '',
+      patientEmail: eventData?.metadata?.patientEmail || '',
+      patientPhone: eventData?.customer_details?.phone || '',
+      appointmentDate: eventData?.metadata?.appointmentDate || '',
+      appointmentTime: eventData?.metadata?.appointmentTime || '',
+      notes: eventData?.metadata?.notes || '',
+      doctorName: eventData?.metadata?.doctorName || '',
+      specialty: eventData?.metadata?.specialty || '',
+      userEmail: eventData?.metadata?.userEmail || '',
+      userId: eventData?.metadata?.patientId || '',
+      doctorId: eventData?.metadata?.doctorId || '',
     };
+
+    const dbResponse = await this._appointMentService.makeAppointment(appointmentData);
+
+    console.log("✅ Appointment created successfully:", dbResponse.id);
+  } catch (error) {
+    console.error("❌ Error while handling payment event:", error);
+  }
+};
 
     fetchUserAppointments = async (
         req: Request,
@@ -97,7 +76,7 @@ export class AppointmentController {
                     validatedLimit
                 );
 
-            res.status(200).json({
+            res.status(HttpStatusCode.OK).json({
                 success: response.success,
                 message: response.message,
                 appointments: response.appointments,
@@ -110,7 +89,7 @@ export class AppointmentController {
             });
         } catch (error) {
             console.error('REST fetchUserAppointments error:', error);
-            res.status(500).json({
+            res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
                 message:
                     error instanceof Error
                         ? error.message
@@ -136,8 +115,7 @@ export class AppointmentController {
                     validatedLimit
                 );
 
-            // Send success response
-            res.status(200).json({
+            res.status(HttpStatusCode.OK).json({
                 success: true,
                 message: 'Appointments fetched successfully',
                 appointments: response.appointments,
@@ -150,7 +128,7 @@ export class AppointmentController {
             });
         } catch (error) {
             console.error('REST fetchAllUserAppointments error:', error);
-            res.status(500).json({
+            res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
                 message:
                     error instanceof Error
@@ -167,14 +145,13 @@ export class AppointmentController {
         try {
             const { appointmentId } = req.body;
 
-            // Call service method
             const response =
                 await this._appointMentService.cancelUserAppointment(
                     appointmentId
                 );
 
             // Send success response
-            res.status(200).json({
+            res.status(HttpStatusCode.OK).json({
                 success: response.success,
                 message:
                     response.message || 'Appointment cancelled successfully',
@@ -182,7 +159,7 @@ export class AppointmentController {
             });
         } catch (error) {
             console.error('REST cancelUserAppointment error:', error);
-            res.status(500).json({
+            res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
                 message:
                     error instanceof Error
@@ -229,14 +206,14 @@ export class AppointmentController {
                     cancelData
                 );
 
-            res.status(200).json({
+            res.status(HttpStatusCode.OK).json({
                 success: true,
                 message: 'Appointment cancelled successfully by user',
                 data: response,
             });
         } catch (error) {
             console.error('REST cancelAppointmentUserSide error:', error);
-            res.status(500).json({
+            res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
                 message:
                     error instanceof Error
@@ -296,7 +273,7 @@ export class AppointmentController {
             const response =
                 FilteringDoctorAppointmentsMapper.toGrpcResponse(result);
 
-            res.status(200).json({
+            res.status(HttpStatusCode.OK).json({
                 success: true,
                 message: 'Doctor appointments filtered successfully',
                 data: response,
@@ -312,7 +289,7 @@ export class AppointmentController {
             const errorResponse =
                 FilteringDoctorAppointmentsMapper.toGrpcError(errorMessage);
 
-            res.status(500).json({
+            res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
                 message: errorMessage,
                 error: errorResponse,

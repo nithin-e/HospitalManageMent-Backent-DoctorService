@@ -1,9 +1,8 @@
-import { AppointmentSlotsData, Data } from '../types/Doctor.interface';
-import { GrpcCall } from './appointment.controller';
+import { AppointmentSlotsData, HttpStatusCode } from '../types/Doctor.interface';
 import { inject, injectable } from 'inversify';
 import { TYPES } from '../types/inversify';
-import { ISlotmanageMentService } from '../services/interfaces/ISlot-mangement.service';
 import { Response, Request } from 'express';
+import { ISlotmanageMentService } from '../services/interfaces/ISlot-mangement.service';
 
 @injectable()
 export class SlotManagementController {
@@ -24,14 +23,14 @@ export class SlotManagementController {
                     requestData
                 );
 
-            res.status(200).json({
+            res.status(HttpStatusCode.OK).json({
                 success: true,
                 message: 'Appointment slots fetched successfully',
                 data: slots,
             });
         } catch (error) {
             console.error('REST fetchAppointmentSlots error:', error);
-            res.status(500).json({
+            res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
                 message:
                     error instanceof Error
@@ -50,9 +49,8 @@ export class SlotManagementController {
 
             const { appointmentSettings } = req.body;
 
-            // Validate required fields
             if (!appointmentSettings) {
-                res.status(400).json({
+                res.status(HttpStatusCode.BAD_REQUEST).json({
                     success: false,
                     message: 'Appointment settings are required',
                 });
@@ -60,7 +58,7 @@ export class SlotManagementController {
             }
 
             if (!appointmentSettings.doctorEmail) {
-                res.status(400).json({
+                res.status(HttpStatusCode.BAD_REQUEST).json({
                     success: false,
                     message: 'Doctor email is required',
                 });
@@ -68,7 +66,7 @@ export class SlotManagementController {
             }
 
             if (!appointmentSettings.action) {
-                res.status(400).json({
+                res.status(HttpStatusCode.BAD_REQUEST).json({
                     success: false,
                     message: 'Action (create/update) is required',
                 });
@@ -108,7 +106,7 @@ export class SlotManagementController {
                     recurring_months: appointmentSettings.recurringMonths || 6,
                 };
             } else {
-                res.status(400).json({
+                res.status(HttpStatusCode.BAD_REQUEST).json({
                     success: false,
                     message: "Invalid action. Must be 'create' or 'update'",
                 });
@@ -139,14 +137,14 @@ export class SlotManagementController {
                 email
             );
 
-            res.status(200).json({
+            res.status(HttpStatusCode.OK).json({
                 success: true,
                 message: 'Doctor slots fetched successfully',
                 data: slots,
             });
         } catch (error) {
             console.error('REST fetchDoctorSlots error:', error);
-            res.status(500).json({
+            res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
                 message:
                     error instanceof Error

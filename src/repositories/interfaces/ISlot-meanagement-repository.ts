@@ -1,15 +1,19 @@
-import { AppointmentSlotsData, DbResponse, FetchAppointmentSlotsRequest, FetchAppointmentSlotsResponse, FetchDoctorSlotsResponse } from "../../types/Doctor.interface";
-
+import {
+    AppointmentSlotsData,
+    DbResponse,
+    FetchAppointmentSlotsRequest,
+    FetchAppointmentSlotsResponse,
+    FetchDoctorSlotsResponse,
+} from '../../types/Doctor.interface';
 
 export interface ISlotManagementRepository {
     fetchAppointmentSlots(
-      request: FetchAppointmentSlotsRequest
+        request: FetchAppointmentSlotsRequest
     ): Promise<FetchAppointmentSlotsResponse>;
 
-      storeAppointmentSlots(
+    storeAppointmentSlots(
         appointmentData: AppointmentSlotsData
-      ): Promise<DbResponse>;
+    ): Promise<DbResponse>;
 
-        fetchDoctorSlots(email: string): Promise<FetchDoctorSlotsResponse>;
-      
+    fetchDoctorSlots(email: string): Promise<FetchDoctorSlotsResponse>;
 }

@@ -46,10 +46,6 @@ export class PrescriptionRepository implements IPriscriptionRepo {
         }
     };
 
-    /**
-     * Fetches a prescription by appointmentId.
-     */
-
     fetchPrescription = async (
         prescriptionData: FetchPrescriptionRequest
     ): Promise<FetchPrescriptionResponse> => {

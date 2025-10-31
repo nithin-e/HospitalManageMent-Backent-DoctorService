@@ -1,13 +1,35 @@
 import mongoose, { ObjectId, Types } from "mongoose";
 import { IService } from "../entities/serviceModel";
 
-
-
-export interface Data {
-  [key: string]: any;
+export enum HttpStatusCode {
+    OK = 200,
+    CREATED = 201,
+    BAD_REQUEST = 400,
+    UNAUTHORIZED = 401,
+    FORBIDDEN = 403,
+    NOT_FOUND = 404,
+    CONFLICT = 409,
+    INTERNAL_SERVER_ERROR = 500,
 }
 
 
+export interface PaymentEventData {
+  customer_details?: {
+    name?: string;
+    phone?: string;
+  };
+  metadata?: {
+    patientEmail?: string;
+    appointmentDate?: string;
+    appointmentTime?: string;
+    notes?: string;
+    doctorName?: string;
+    specialty?: string;
+    userEmail?: string;
+    patientId?: string;
+    doctorId?: string;
+  };
+}
 // Individual time slot interface
 export interface TimeSlot {
   id?: string;
@@ -138,13 +160,13 @@ export interface AppointmentSlotDocument extends mongoose.Document {
   _id: mongoose.Types.ObjectId;
 }
 
-// Add these to your existing interfaces file
+
 export interface TimeSlotDetails {
   id: string;
-  time: string; // 24-hour format (e.g., "14:30")
-  time12: string; // 12-hour format (e.g., "2:30 PM")
-  time24: string; // 24-hour format (e.g., "14:30")
-  date: string; // Date in YYYY-MM-DD format
+  time: string; 
+  time12: string; 
+  time24: string
+  date: string; 
 }
 
 export interface RescheduleAppointmentRequest {
@@ -205,6 +227,11 @@ export interface AppointmentRequest {
   userId: string;
   doctorId: string;
 }
+
+export interface Data {
+  [key: string]: any;
+}
+
 
 // Response Types
 export interface AppointmentResponse {

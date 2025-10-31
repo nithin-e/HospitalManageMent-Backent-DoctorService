@@ -11,24 +11,8 @@ import {
 import { injectable } from 'inversify';
 import { IChatRepository } from '../interfaces/IChat.repository';
 
-/**
- * ChatHandlingRepo
- *
- * Repository layer responsible for direct database operations
- * related to chat messages, conversations, and appointments.
- * Uses Mongoose models to interact with MongoDB collections.
- */
-
 @injectable()
 export class ChatRepository implements IChatRepository {
-    /**
-     * Stores a message in the database.
-     * Creates or updates a conversation record,
-     * then saves the new message in the messages collection.
-     *
-     * @param messageData - contains sender, receiver, appointment, and message details
-     * @returns Promise resolving with message and conversation details
-     */
     storeMessage = async (
         messageData: ChatMessageStorageRequest
     ): Promise<ChatMessageDbResponse> => {
@@ -86,7 +70,6 @@ export class ChatRepository implements IChatRepository {
                 timestamp: timestamp,
             });
 
-            // Save the message
             const savedMessage = await newMessage.save();
             console.log('Message saved successfully:', savedMessage._id);
 
@@ -116,7 +99,6 @@ export class ChatRepository implements IChatRepository {
         }
     };
 
- 
     fetchConversations = async (
         userId: string,
         doctorId: string
@@ -184,7 +166,4 @@ export class ChatRepository implements IChatRepository {
             );
         }
     };
-
-   
-
 }

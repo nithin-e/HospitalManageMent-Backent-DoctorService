@@ -1,13 +1,14 @@
 import { inject, injectable } from 'inversify';
 import { TYPES } from '../types/inversify';
-import { IServiceManageMentRepository } from '../repositories/interfaces/IService-management-repository';
 import { Response, Request } from 'express';
+import { HttpStatusCode } from '../types/Doctor.interface';
+import {IServiceManageMentService} from '../services/interfaces/IService-management.service';
 
 @injectable()
 export class ServiceController {
     constructor(
         @inject(TYPES.ServiceManageMentService)
-        private _serviceManageMent: IServiceManageMentRepository
+        private _serviceManageMent: IServiceManageMentService
     ) {}
 
     createService = async (req: Request, res: Response): Promise<void> => {
@@ -19,7 +20,7 @@ export class ServiceController {
                 description
             );
 
-            res.status(201).json({
+            res.status(HttpStatusCode.CREATED).json({
                 success: success,
                 message: success
                     ? 'Service created successfully'
@@ -27,7 +28,7 @@ export class ServiceController {
             });
         } catch (error) {
             console.error('REST createService error:', error);
-            res.status(500).json({
+            res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
                 message:
                     error instanceof Error
@@ -41,14 +42,14 @@ export class ServiceController {
         try {
             const services = await this._serviceManageMent.fetchService();
 
-            res.status(200).json({
+            res.status(HttpStatusCode.OK).json({
                 success: true,
                 message: 'Services fetched successfully',
                 data: services,
             });
         } catch (error) {
             console.error('REST fetchService error:', error);
-            res.status(500).json({
+            res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
                 message:
                     error instanceof Error
@@ -66,7 +67,7 @@ export class ServiceController {
                 serviceId
             );
 
-            res.status(200).json({
+            res.status(HttpStatusCode.OK).json({
                 success,
                 message: success
                     ? 'Service deleted successfully'
@@ -74,7 +75,7 @@ export class ServiceController {
             });
         } catch (error) {
             console.error('REST deleteService error:', error);
-            res.status(500).json({
+            res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
                 message:
                     error instanceof Error
@@ -95,7 +96,7 @@ export class ServiceController {
                 description
             );
 
-            res.status(200).json({
+            res.status(HttpStatusCode.OK).json({
                 success,
                 message: success
                     ? 'Service updated successfully'
@@ -103,7 +104,7 @@ export class ServiceController {
             });
         } catch (error) {
             console.error('REST editService error:', error);
-            res.status(500).json({
+            res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
                 message:
                     error instanceof Error

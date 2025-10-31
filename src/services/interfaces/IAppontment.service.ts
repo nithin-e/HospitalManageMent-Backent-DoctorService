@@ -2,17 +2,14 @@ import {
     AllAppointmentsResponse,
     AppointmentRequest,
     AppointmentResponse,
-    AppointmentUpdateParams,
     AppointmentUpdateResponse,
     CancelAppointmentRequest,
     CancelAppointmentResponse,
     Data,
-    FetchAppointmentSlotsRequest,
-    FetchAppointmentSlotsResponse,
     FilteringResponse,
     UserAppointmentsResponse,
 } from '../../types/Doctor.interface';
-import { IService } from '../../entities/serviceModel';
+
 import { IStoreAppointmentSlotsService } from './IStore-appointment-slots.service';
 
 export interface IAppointmentService extends IStoreAppointmentSlotsService {
