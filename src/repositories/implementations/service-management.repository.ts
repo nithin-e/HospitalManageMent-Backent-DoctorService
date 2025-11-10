@@ -3,6 +3,7 @@ import serviceModel, { IService } from '../../entities/serviceModel';
 import { updateData } from '../../types/Doctor.interface';
 import { IServiceManageMentRepository } from '../interfaces/IService-management-repository';
 import { BaseRepository } from './base.repository';
+import { SERVICE_MESSAGES } from '../../constants/messages.constant';
 
 @injectable()
 export class ServiceManageMentRepository
@@ -25,7 +26,7 @@ export class ServiceManageMentRepository
             await newService.save();
             return true;
         } catch (error) {
-            console.error('Error creating service in repository:', error);
+            console.error(SERVICE_MESSAGES.ERROR.CREATE_FAILED, error);
             return false;
         }
     };
@@ -34,7 +35,7 @@ export class ServiceManageMentRepository
         try {
             return await this.find({});
         } catch (error) {
-            console.error('Error fetching services from repository:', error);
+            console.error(SERVICE_MESSAGES.ERROR.FETCH_FAILED, error);
             throw error;
         }
     };
@@ -44,13 +45,15 @@ export class ServiceManageMentRepository
             const deletedService = await this.deleteById(serviceId);
 
             if (!deletedService) {
-                console.warn('Service not found:', serviceId);
+                console.warn(
+                    `${SERVICE_MESSAGES.DELETE.NOT_FOUND}: ${serviceId}`
+                );
                 return false;
             }
 
             return true;
         } catch (error) {
-            console.error('Error deleting service in repository:', error);
+            console.error(SERVICE_MESSAGES.ERROR.DELETE_FAILED, error);
             return false;
         }
     };
@@ -64,7 +67,9 @@ export class ServiceManageMentRepository
             const existingService = await serviceModel.findById(serviceId);
 
             if (!existingService) {
-                console.error('Service not found with ID:', serviceId);
+                console.error(
+                    `${SERVICE_MESSAGES.UPDATE.NOT_FOUND}: ${serviceId}`
+                );
                 return false;
             }
 
@@ -80,13 +85,15 @@ export class ServiceManageMentRepository
             );
 
             if (!updatedService) {
-                console.error('Failed to update service');
+                console.error(
+                    `${SERVICE_MESSAGES.UPDATE.FAILED}: ${serviceId}`
+                );
                 return false;
             }
 
             return true;
         } catch (error) {
-            console.error('Error editing service in repository:', error);
+            console.error(SERVICE_MESSAGES.ERROR.UPDATE_FAILED, error);
             return false;
         }
     };

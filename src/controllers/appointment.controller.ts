@@ -19,6 +19,7 @@ import { TYPES } from '../types/inversify';
 import { FilteringDoctorAppointmentsMapper } from '../mapers/chatMessage.mapper';
 import { IAppointmentService } from '../services/interfaces/IAppontment.service';
 import { inject, injectable } from 'inversify';
+import { MESSAGES } from '../constants/messages.constant';
 
 export interface GrpcCall {
     request: FetchDoctorSlotsRequest;
@@ -31,33 +32,29 @@ export class AppointmentController {
         private _appointMentService: IAppointmentService
     ) {}
 
-    
-
     handleAppointmentFromPayment = async (eventData: PaymentEventData) => {
-  try {
-    console.log("📥 Received appointment event from Payment Service:", eventData);
+        try {
+            const appointmentData: AppointmentRequest = {
+                patientName: eventData?.customer_details?.name || '',
+                patientEmail: eventData?.metadata?.patientEmail || '',
+                patientPhone: eventData?.customer_details?.phone || '',
+                appointmentDate: eventData?.metadata?.appointmentDate || '',
+                appointmentTime: eventData?.metadata?.appointmentTime || '',
+                notes: eventData?.metadata?.notes || '',
+                doctorName: eventData?.metadata?.doctorName || '',
+                specialty: eventData?.metadata?.specialty || '',
+                userEmail: eventData?.metadata?.userEmail || '',
+                userId: eventData?.metadata?.patientId || '',
+                doctorId: eventData?.metadata?.doctorId || '',
+            };
 
-    const appointmentData: AppointmentRequest = {
-      patientName: eventData?.customer_details?.name || '',
-      patientEmail: eventData?.metadata?.patientEmail || '',
-      patientPhone: eventData?.customer_details?.phone || '',
-      appointmentDate: eventData?.metadata?.appointmentDate || '',
-      appointmentTime: eventData?.metadata?.appointmentTime || '',
-      notes: eventData?.metadata?.notes || '',
-      doctorName: eventData?.metadata?.doctorName || '',
-      specialty: eventData?.metadata?.specialty || '',
-      userEmail: eventData?.metadata?.userEmail || '',
-      userId: eventData?.metadata?.patientId || '',
-      doctorId: eventData?.metadata?.doctorId || '',
+            const dbResponse = await this._appointMentService.makeAppointment(
+                appointmentData
+            );
+        } catch (error) {
+            console.error(MESSAGES.CREATE.PAYMENT_FAILED, error);
+        }
     };
-
-    const dbResponse = await this._appointMentService.makeAppointment(appointmentData);
-
-    console.log("✅ Appointment created successfully:", dbResponse.id);
-  } catch (error) {
-    console.error("❌ Error while handling payment event:", error);
-  }
-};
 
     fetchUserAppointments = async (
         req: Request,
@@ -88,12 +85,13 @@ export class AppointmentController {
                 hasPrevPage: response.hasPrevPage,
             });
         } catch (error) {
-            console.error('REST fetchUserAppointments error:', error);
+            console.error(' error:', error);
             res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+                success: false,
                 message:
                     error instanceof Error
                         ? error.message
-                        : 'Internal server error',
+                        : MESSAGES.ERROR.INTERNAL_SERVER_ERROR,
             });
         }
     };
@@ -117,7 +115,7 @@ export class AppointmentController {
 
             res.status(HttpStatusCode.OK).json({
                 success: true,
-                message: 'Appointments fetched successfully',
+                message: MESSAGES.FETCH.ALL_SUCCESS,
                 appointments: response.appointments,
                 currentPage: response.currentPage,
                 totalPages: response.totalPages,
@@ -127,13 +125,13 @@ export class AppointmentController {
                 hasPrevPage: response.hasPrevPage,
             });
         } catch (error) {
-            console.error('REST fetchAllUserAppointments error:', error);
+            console.error('error:', error);
             res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
                 message:
                     error instanceof Error
                         ? error.message
-                        : 'Internal server error',
+                        : MESSAGES.ERROR.INTERNAL_SERVER_ERROR,
             });
         }
     };
@@ -150,21 +148,19 @@ export class AppointmentController {
                     appointmentId
                 );
 
-            // Send success response
             res.status(HttpStatusCode.OK).json({
                 success: response.success,
-                message:
-                    response.message || 'Appointment cancelled successfully',
+                message: response.message || MESSAGES.CANCEL.SUCCESS,
                 data: response,
             });
         } catch (error) {
-            console.error('REST cancelUserAppointment error:', error);
+            console.error(' error:', error);
             res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
                 message:
                     error instanceof Error
                         ? error.message
-                        : 'Internal server error',
+                        : MESSAGES.ERROR.INTERNAL_SERVER_ERROR,
             });
         }
     };
@@ -182,14 +178,15 @@ export class AppointmentController {
             return {
                 success: true,
                 data: dbResponse,
-                message: 'Appointment rescheduled successfully',
+                message: MESSAGES.RESCHEDULE.SUCCESS,
             };
         } catch (error) {
             return {
                 success: false,
                 data: null,
                 message:
-                    (error as Error).message || 'Unexpected error occurred',
+                    (error as Error).message ||
+                    MESSAGES.ERROR.INTERNAL_SERVER_ERROR,
             };
         }
     };
@@ -208,17 +205,17 @@ export class AppointmentController {
 
             res.status(HttpStatusCode.OK).json({
                 success: true,
-                message: 'Appointment cancelled successfully by user',
+                message: MESSAGES.CANCEL.USER_SUCCESS,
                 data: response,
             });
         } catch (error) {
-            console.error('REST cancelAppointmentUserSide error:', error);
+            console.error(' error:', error);
             res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
                 message:
                     error instanceof Error
                         ? error.message
-                        : 'Internal server error',
+                        : MESSAGES.ERROR.INTERNAL_SERVER_ERROR,
             });
         }
     };
@@ -243,13 +240,13 @@ export class AppointmentController {
                 details:
                     error instanceof Error
                         ? error.message
-                        : 'Failed to cancel appointment',
+                        : MESSAGES.CANCEL.FAILED,
                 metadata: new grpc.Metadata(),
             };
 
             if (error instanceof Error && error.message.includes('not found')) {
                 grpcError.code = status.NOT_FOUND;
-                grpcError.details = 'Appointment not found';
+                grpcError.details = MESSAGES.CANCEL.NOT_FOUND;
             }
 
             callback(grpcError);
@@ -270,21 +267,18 @@ export class AppointmentController {
                     params
                 );
 
-            const response =
-                FilteringDoctorAppointmentsMapper.toGrpcResponse(result);
-
             res.status(HttpStatusCode.OK).json({
                 success: true,
-                message: 'Doctor appointments filtered successfully',
-                data: response,
+                message: MESSAGES.FILTER.SUCCESS,
+                data: result,
             });
         } catch (error) {
-            console.error('REST filteringDoctorAppointments error:', error);
+            console.error(' error:', error);
 
             const errorMessage =
                 error instanceof Error
                     ? error.message
-                    : 'Internal server error';
+                    : MESSAGES.ERROR.INTERNAL_SERVER_ERROR;
 
             const errorResponse =
                 FilteringDoctorAppointmentsMapper.toGrpcError(errorMessage);
@@ -308,7 +302,7 @@ export class AppointmentController {
             const { appointmentId, endedBy } = call.request;
 
             if (!appointmentId || !endedBy) {
-                throw new Error('Both appointmentId and endedBy are required');
+                throw new Error(MESSAGES.VALIDATION.BOTH_FIELDS_REQUIRED);
             }
 
             const result =
@@ -327,7 +321,7 @@ export class AppointmentController {
             callback(null, response);
             return response;
         } catch (error) {
-            console.error('updateAppointmentAfterConsultation error:', error);
+            console.error('error:', error);
             throw error;
         }
     };

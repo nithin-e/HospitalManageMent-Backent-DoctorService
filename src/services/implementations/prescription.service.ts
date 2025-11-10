@@ -8,6 +8,7 @@ import {
 import { TYPES } from '../../types/inversify';
 import { IPriscriptionRepo } from '../../repositories/interfaces/IPriscription.repository';
 import { IPrescriptionService } from '../interfaces/IPrescription.service';
+import { PRESCRIPTION_MESSAGES } from '../../constants/messages.constant';
 
 @injectable()
 export class PrescriptionService implements IPrescriptionService {
@@ -25,7 +26,10 @@ export class PrescriptionService implements IPrescriptionService {
             );
             return response;
         } catch (error) {
-            console.error('Error in service layer:', error);
+            console.error(
+                PRESCRIPTION_MESSAGES.ERROR.SERVICE_LAYER_ERROR,
+                error
+            );
             throw error;
         }
     };
@@ -36,7 +40,10 @@ export class PrescriptionService implements IPrescriptionService {
         try {
             return await this._PrescriptionRepo.fetchPrescription(request);
         } catch (error) {
-            console.error('Error in service layer:', error);
+            console.error(
+                PRESCRIPTION_MESSAGES.ERROR.SERVICE_LAYER_ERROR,
+                error
+            );
             throw error;
         }
     };

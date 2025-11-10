@@ -2,7 +2,8 @@ import { inject, injectable } from 'inversify';
 import { TYPES } from '../types/inversify';
 import { Response, Request } from 'express';
 import { HttpStatusCode } from '../types/Doctor.interface';
-import {IServiceManageMentService} from '../services/interfaces/IService-management.service';
+import { IServiceManageMentService } from '../services/interfaces/IService-management.service';
+import { SERVICE_MESSAGES } from '../constants/messages.constant';
 
 @injectable()
 export class ServiceController {
@@ -23,8 +24,8 @@ export class ServiceController {
             res.status(HttpStatusCode.CREATED).json({
                 success: success,
                 message: success
-                    ? 'Service created successfully'
-                    : 'Failed to create service',
+                    ? SERVICE_MESSAGES.CREATE.SUCCESS
+                    : SERVICE_MESSAGES.CREATE.FAILED,
             });
         } catch (error) {
             console.error('REST createService error:', error);
@@ -33,7 +34,7 @@ export class ServiceController {
                 message:
                     error instanceof Error
                         ? error.message
-                        : 'Internal server error',
+                        : SERVICE_MESSAGES.ERROR.INTERNAL_SERVER_ERROR,
             });
         }
     };
@@ -44,7 +45,7 @@ export class ServiceController {
 
             res.status(HttpStatusCode.OK).json({
                 success: true,
-                message: 'Services fetched successfully',
+                message: SERVICE_MESSAGES.FETCH.SUCCESS,
                 data: services,
             });
         } catch (error) {
@@ -54,7 +55,7 @@ export class ServiceController {
                 message:
                     error instanceof Error
                         ? error.message
-                        : 'Internal server error while fetching services',
+                        : SERVICE_MESSAGES.ERROR.INTERNAL_SERVER_ERROR,
             });
         }
     };
@@ -70,8 +71,8 @@ export class ServiceController {
             res.status(HttpStatusCode.OK).json({
                 success,
                 message: success
-                    ? 'Service deleted successfully'
-                    : 'Failed to delete service',
+                    ? SERVICE_MESSAGES.DELETE.SUCCESS
+                    : SERVICE_MESSAGES.DELETE.NOT_FOUND,
             });
         } catch (error) {
             console.error('REST deleteService error:', error);
@@ -80,7 +81,7 @@ export class ServiceController {
                 message:
                     error instanceof Error
                         ? error.message
-                        : 'Internal server error while deleting service',
+                        : SERVICE_MESSAGES.ERROR.INTERNAL_SERVER_ERROR,
             });
         }
     };
@@ -99,8 +100,8 @@ export class ServiceController {
             res.status(HttpStatusCode.OK).json({
                 success,
                 message: success
-                    ? 'Service updated successfully'
-                    : 'Failed to update service',
+                    ? SERVICE_MESSAGES.UPDATE.SUCCESS
+                    : SERVICE_MESSAGES.UPDATE.NOT_FOUND,
             });
         } catch (error) {
             console.error('REST editService error:', error);
@@ -109,7 +110,7 @@ export class ServiceController {
                 message:
                     error instanceof Error
                         ? error.message
-                        : 'Internal server error while updating service',
+                        : SERVICE_MESSAGES.ERROR.INTERNAL_SERVER_ERROR,
             });
         }
     };

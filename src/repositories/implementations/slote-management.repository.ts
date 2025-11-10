@@ -15,6 +15,7 @@ import {
 import { replicateTimeSlotsForDates } from '../../utility/replicateTimeSlotsForDates';
 import { ISlotManagementRepository } from '../interfaces/ISlot-meanagement-repository';
 import { generateRecurringDates } from '../../utility/generateRecurringDates';
+import { SLOT_MESSAGES } from '../../constants/messages.constant';
 
 @injectable()
 export class SloteManagementRepository implements ISlotManagementRepository {
@@ -28,7 +29,7 @@ export class SloteManagementRepository implements ISlotManagementRepository {
             if (!doctorSlots || doctorSlots.length === 0) {
                 return {
                     success: false,
-                    message: 'No appointment slots found for this doctor',
+                    message: SLOT_MESSAGES.FETCH.NO_SLOTS,
                     slots_created: 0,
                     dates: [],
                     slots: [],
@@ -51,13 +52,13 @@ export class SloteManagementRepository implements ISlotManagementRepository {
 
             return {
                 success: true,
-                message: 'Doctor appointment slots retrieved successfully',
+                message: SLOT_MESSAGES.FETCH.DOCTOR_SLOTS_RETRIEVED,
                 slots_created: doctorSlots.length,
                 dates: uniqueDates,
                 slots: formattedSlots,
             };
         } catch (error) {
-            console.error('Error fetching doctor slots:', error);
+            console.error(SLOT_MESSAGES.ERROR.FETCH_FAILED, error);
             throw error;
         }
     }
@@ -114,7 +115,7 @@ export class SloteManagementRepository implements ISlotManagementRepository {
                 time_slots: timeSlots,
             };
         } catch (error) {
-            console.error('Error fetching doctor slots:', error);
+            console.error(SLOT_MESSAGES.ERROR.FETCH_FAILED, error);
             throw error;
         }
     };
@@ -122,8 +123,6 @@ export class SloteManagementRepository implements ISlotManagementRepository {
     createAppointmentSlots = async (
         appointmentData: AppointmentSlotsData
     ): Promise<DbResponse> => {
-        console.log('hitting req createAppointmentSlots');
-
         try {
             const {
                 doctor_email,
@@ -149,16 +148,9 @@ export class SloteManagementRepository implements ISlotManagementRepository {
                     recurring_months
                 );
 
-                console.log('check this recurringDates', recurringDates);
-
                 const recurringTimeSlots = replicateTimeSlotsForDates(
                     time_slots,
                     recurringDates
-                );
-
-                console.log(
-                    'and check this recurringTimeSlots ',
-                    recurringTimeSlots
                 );
 
                 allTimeSlots = [...time_slots, ...recurringTimeSlots];
@@ -197,24 +189,20 @@ export class SloteManagementRepository implements ISlotManagementRepository {
                     }
                 );
                 insertedCount = result.length;
-            } catch (err: any) {
-                console.error('Error inserting appointment slots:', err);
-
-                if (err.insertedDocs) {
-                    insertedCount = err.insertedDocs.length;
-                }
+            } catch (err) {
+                console.error(SLOT_MESSAGES.ERROR.INSERT_FAILED, err);
             }
 
             return {
                 success: true,
-                message: 'Appointment slots created successfully',
+                message: SLOT_MESSAGES.CREATE.SUCCESS,
                 slots_created: insertedCount,
                 dates: selected_dates,
                 slots_removed: 0,
                 slots_updated: 0,
             };
         } catch (error) {
-            console.error('Error in createAppointmentSlots:', error);
+            console.error(SLOT_MESSAGES.ERROR.CREATE_FAILED, error);
             throw error;
         }
     };
@@ -268,10 +256,7 @@ export class SloteManagementRepository implements ISlotManagementRepository {
 
                     updatedCount = insertResult.length;
                 } catch (error: any) {
-                    console.error(
-                        'Error creating new appointment slots:',
-                        error
-                    );
+                    console.error(SLOT_MESSAGES.ERROR.NEW_SLOTS_FAILED, error);
 
                     if (error.insertedDocs) {
                         updatedCount = error.insertedDocs.length;
@@ -283,16 +268,18 @@ export class SloteManagementRepository implements ISlotManagementRepository {
                 doctorEmail: doctor_email,
             });
 
+            const message = `${SLOT_MESSAGES.UPDATE.SUCCESS}. Removed: ${removedCount}, Added: ${updatedCount}`;
+
             return {
                 success: true,
-                message: `Appointment slots updated successfully. Removed: ${removedCount}, Added: ${updatedCount}`,
+                message: message,
                 slots_created: 0,
                 slots_removed: removedCount,
                 slots_updated: updatedCount,
                 dates: allSlots.sort(),
             };
         } catch (error) {
-            console.error('Error in updateAppointmentSlots:', error);
+            console.error(SLOT_MESSAGES.ERROR.UPDATE_FAILED, error);
             throw error;
         }
     };
@@ -309,7 +296,7 @@ export class SloteManagementRepository implements ISlotManagementRepository {
                 return await this.createAppointmentSlots(appointmentData);
             }
         } catch (error) {
-            console.error('Error in appointment slots repository:', error);
+            console.error(SLOT_MESSAGES.ERROR.STORE_FAILED, error);
             throw error;
         }
     };

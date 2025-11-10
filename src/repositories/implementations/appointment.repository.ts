@@ -24,6 +24,7 @@ import {
 import mongoose, { FilterQuery, SortOrder } from 'mongoose';
 import { injectable } from 'inversify';
 import { convertToDbDateFormat } from '../../utility/timeFormatter';
+import { MESSAGES } from '../../constants/messages.constant';
 
 @injectable()
 export class AppontMentRepository implements IAppointmentRepository {
@@ -38,11 +39,11 @@ export class AppontMentRepository implements IAppointmentRepository {
             });
 
             if (!appointmentSlot) {
-                throw new Error('Appointment slot not found');
+                throw new Error(MESSAGES.CREATE.SLOT_NOT_FOUND);
             }
 
             if (appointmentSlot.isBooked) {
-                throw new Error('This appointment slot is already booked');
+                throw new Error(MESSAGES.CREATE.SLOT_ALREADY_BOOKED);
             }
 
             appointmentSlot.isBooked = true;
@@ -76,12 +77,12 @@ export class AppontMentRepository implements IAppointmentRepository {
 
             return {
                 id: savedAppointment._id.toString(),
-                message: 'Appointment booked successfully',
+                message: MESSAGES.CREATE.SUCCESS,
             };
         } catch (error) {
-            console.error('Error storing appointment:', error);
+            console.error(MESSAGES.CREATE.FAILED, error);
             throw new Error(
-                `Failed to store appointment: ${(error as Error).message}`
+                `${MESSAGES.CREATE.FAILED}: ${(error as Error).message}`
             );
         }
     };
@@ -127,8 +128,8 @@ export class AppontMentRepository implements IAppointmentRepository {
                     success: true,
                     message:
                         totalAppointments === 0
-                            ? 'No appointments found for this email'
-                            : `No appointments found for page ${page}`,
+                            ? MESSAGES.FETCH.NO_APPOINTMENTS
+                            : `${MESSAGES.FETCH.NO_APPOINTMENTS_PAGE} ${page}`,
                     currentPage: page,
                     totalPages: totalPages,
                     totalAppointments: totalAppointments,
@@ -171,7 +172,7 @@ export class AppontMentRepository implements IAppointmentRepository {
             return {
                 appointments: formattedAppointments,
                 success: true,
-                message: 'Appointments fetched successfully',
+                message: MESSAGES.FETCH.SUCCESS,
                 currentPage: page,
                 totalPages: totalPages,
                 totalAppointments: totalAppointments,
@@ -180,9 +181,9 @@ export class AppontMentRepository implements IAppointmentRepository {
                 hasPrevPage: hasPrevPage,
             };
         } catch (error) {
-            console.error('Error fetching appointments:', error);
+            console.error(MESSAGES.FETCH.FAILED, error);
             throw new Error(
-                `Failed to fetch appointments: ${(error as Error).message}`
+                `${MESSAGES.FETCH.FAILED}: ${(error as Error).message}`
             );
         }
     };
@@ -200,9 +201,6 @@ export class AppontMentRepository implements IAppointmentRepository {
                 query.doctorEmail = email.trim().toLowerCase();
             }
 
-            console.log('Querying appointments with:', query);
-
-            // Fetch appointments and total count in parallel
             const [appointments, totalAppointments] = await Promise.all([
                 AppointmentModel.find(query)
                     .sort({ appointmentDate: 1, appointmentTime: 1 })
@@ -212,13 +210,6 @@ export class AppontMentRepository implements IAppointmentRepository {
                     .exec(),
                 AppointmentModel.countDocuments(query),
             ]);
-
-            console.log(
-                'Appointments fetched:',
-                appointments.length,
-                'Total matching:',
-                totalAppointments
-            );
 
             const totalPages = Math.ceil(totalAppointments / limit);
 
@@ -250,7 +241,7 @@ export class AppontMentRepository implements IAppointmentRepository {
                     Prescription: appointment.Prescription,
                 })) as IAppointment[],
                 success: true,
-                message: 'Appointments fetched successfully',
+                message: MESSAGES.FETCH.ALL_SUCCESS,
                 currentPage: page,
                 totalPages,
                 totalAppointments,
@@ -259,9 +250,9 @@ export class AppontMentRepository implements IAppointmentRepository {
                 hasPrevPage: page > 1,
             };
         } catch (error) {
-            console.error('Error fetching user appointments:', error);
+            console.error(MESSAGES.FETCH.ALL_FAILED, error);
             throw new Error(
-                `Failed to fetch appointments: ${(error as Error).message}`
+                `${MESSAGES.FETCH.ALL_FAILED}: ${(error as Error).message}`
             );
         }
     };
@@ -279,18 +270,18 @@ export class AppontMentRepository implements IAppointmentRepository {
             if (!result) {
                 return {
                     success: false,
-                    message: 'Appointment not found',
+                    message: MESSAGES.CANCEL.NOT_FOUND,
                 };
             }
 
             return {
                 success: true,
-                message: 'Appointment cancelled successfully',
+                message: MESSAGES.CANCEL.SUCCESS,
             };
         } catch (error) {
-            console.error('Error while cancelling appointment:', error);
+            console.error(MESSAGES.CANCEL.FAILED, error);
             throw new Error(
-                `Failed to cancel appointment: ${(error as Error).message}`
+                `${MESSAGES.CANCEL.FAILED}: ${(error as Error).message}`
             );
         }
     };
@@ -307,9 +298,7 @@ export class AppontMentRepository implements IAppointmentRepository {
             );
 
             if (!deleteSlotResult) {
-                throw new Error(
-                    'Original slot not found or could not be deleted'
-                );
+                throw new Error(MESSAGES.RESCHEDULE.ORIGINAL_SLOT_NOT_FOUND);
             }
 
             const userAppointment = await AppointmentModel.findOne({
@@ -319,7 +308,7 @@ export class AppontMentRepository implements IAppointmentRepository {
             });
 
             if (!userAppointment) {
-                throw new Error('User appointment not found');
+                throw new Error(MESSAGES.RESCHEDULE.APPOINTMENT_NOT_FOUND);
             }
 
             const updateResult = await AppointmentModel.findByIdAndUpdate(
@@ -338,7 +327,7 @@ export class AppontMentRepository implements IAppointmentRepository {
             );
 
             if (!updateResult) {
-                throw new Error('Failed to update user appointment');
+                throw new Error(MESSAGES.RESCHEDULE.UPDATE_FAILED);
             }
 
             let newSlotResult;
@@ -374,7 +363,7 @@ export class AppontMentRepository implements IAppointmentRepository {
 
             return {
                 success: true,
-                message: 'Appointment rescheduled successfully',
+                message: MESSAGES.RESCHEDULE.SUCCESS,
                 data: {
                     updatedAppointment: updateResult as mongoose.Document,
                     originalSlotDeleted: deleteSlotResult as mongoose.Document,
@@ -383,11 +372,14 @@ export class AppontMentRepository implements IAppointmentRepository {
                 },
             };
         } catch (error) {
-            console.error('Error in handleAppointmentReschedule:', error);
+            console.error(MESSAGES.RESCHEDULE.FAILED, error);
             return {
                 success: false,
-                message: 'Failed to reschedule appointment',
-                error: error instanceof Error ? error.message : 'Unknown error',
+                message: MESSAGES.RESCHEDULE.FAILED,
+                error:
+                    error instanceof Error
+                        ? error.message
+                        : MESSAGES.ERROR.INTERNAL_SERVER_ERROR,
             };
         }
     };
@@ -401,7 +393,7 @@ export class AppontMentRepository implements IAppointmentRepository {
             if (!time || !date || !email) {
                 return {
                     success: false,
-                    message: 'Missing required fields: time, date, or email',
+                    message: MESSAGES.VALIDATION.MISSING_FIELDS,
                 };
             }
 
@@ -415,15 +407,13 @@ export class AppontMentRepository implements IAppointmentRepository {
             });
 
             if (!appointment) {
-                console.log('Appointment not found with query parameters');
-
                 const debugAppointments = await AppointmentModel.find({
                     doctorName: email,
                 });
 
                 return {
                     success: false,
-                    message: 'Appointment not found or already cancelled',
+                    message: MESSAGES.CANCEL.ALREADY_CANCELLED,
                 };
             }
 
@@ -461,22 +451,23 @@ export class AppontMentRepository implements IAppointmentRepository {
 
                 return {
                     success: true,
-                    message:
-                        'Appointment cancelled successfully, but slot availability could not be updated',
+                    message: MESSAGES.CANCEL.SLOT_UPDATE_WARNING,
                 };
             }
 
             return {
                 success: true,
-                message:
-                    'Appointment cancelled successfully and slot is now available',
+                message: MESSAGES.CANCEL.SLOT_SUCCESS,
             };
         } catch (error) {
-            console.error('Error in Canceling_AppointMent__UserSide:', error);
+            console.error(MESSAGES.CANCEL.FAILED, error);
             return {
                 success: false,
-                message: 'Failed to cancel appointment',
-                error: error instanceof Error ? error.message : 'Unknown error',
+                message: MESSAGES.CANCEL.FAILED,
+                error:
+                    error instanceof Error
+                        ? error.message
+                        : MESSAGES.ERROR.INTERNAL_SERVER_ERROR,
             };
         }
     };
@@ -485,11 +476,6 @@ export class AppontMentRepository implements IAppointmentRepository {
         appointmentData: appointmentaData
     ): Promise<Cancelres> => {
         try {
-            console.log(
-                'bro check the appointment data while the cancel appointment',
-                appointmentData
-            );
-
             const appointment = await AppointmentModel.findOne({
                 patientEmail: appointmentData.patientEmail,
                 doctorId: appointmentData.doctor_id,
@@ -497,8 +483,6 @@ export class AppontMentRepository implements IAppointmentRepository {
                 appointmentTime: appointmentData.time,
                 status: 'scheduled',
             });
-
-            console.log('check this also aftet the updation', appointment);
 
             if (!appointment) {
                 return {
@@ -537,7 +521,7 @@ export class AppontMentRepository implements IAppointmentRepository {
                 success: true,
             };
         } catch (error) {
-            console.log(error);
+            console.error(MESSAGES.CANCEL.FAILED, error);
             return {
                 success: false,
             };
@@ -649,7 +633,7 @@ export class AppontMentRepository implements IAppointmentRepository {
             return {
                 appointments,
                 success: true,
-                message: 'Appointments fetched successfully',
+                message: MESSAGES.FILTER.SUCCESS,
                 totalCount,
                 totalPages,
                 currentPage: validatedPage,
@@ -661,7 +645,7 @@ export class AppontMentRepository implements IAppointmentRepository {
                 message:
                     error instanceof Error
                         ? error.message
-                        : 'Failed to filter appointments',
+                        : MESSAGES.FILTER.FAILED,
                 totalCount: 0,
                 totalPages: 0,
                 currentPage: params.page || 1,
@@ -679,7 +663,7 @@ export class AppontMentRepository implements IAppointmentRepository {
             if (!appointment) {
                 return {
                     success: false,
-                    error: 'Appointment not found',
+                    error: MESSAGES.CANCEL.NOT_FOUND,
                 };
             }
 
@@ -706,13 +690,13 @@ export class AppontMentRepository implements IAppointmentRepository {
                 patientEmail: patientEmail?.toString() || '',
             };
         } catch (error) {
-            console.error('Repository error updating appointment:', error);
+            console.error(MESSAGES.UPDATE.AFTER_CONSULTATION_FAILED, error);
             return {
                 success: false,
                 error:
                     error instanceof Error
                         ? error.message
-                        : 'Database error occurred',
+                        : MESSAGES.ERROR.DATABASE_ERROR,
             };
         }
     };

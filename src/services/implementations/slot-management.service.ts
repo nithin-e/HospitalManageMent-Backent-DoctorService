@@ -6,10 +6,12 @@ import {
     FetchAppointmentSlotsRequest,
     FetchAppointmentSlotsResponse,
     FetchDoctorSlotsResponse,
+    HttpStatusCode,
 } from '../../types/Doctor.interface';
 import { ISlotmanageMentService } from '../interfaces/ISlot-mangement.service';
 import { TYPES } from '../../types/inversify';
 import { ISlotManagementRepository } from '../../repositories/interfaces/ISlot-meanagement-repository';
+import { SLOT_MESSAGES } from '../../constants/messages.constant';
 
 @injectable()
 export class SlotManagementService implements ISlotmanageMentService {
@@ -30,8 +32,8 @@ export class SlotManagementService implements ISlotmanageMentService {
                 );
 
             return response;
-        } catch (error: any) {
-            console.error('Error in appointment slots service:', error);
+        } catch (error) {
+            console.error(SLOT_MESSAGES.ERROR.SERVICE_LAYER_ERROR, error);
             throw error;
         }
     };
@@ -42,7 +44,7 @@ export class SlotManagementService implements ISlotmanageMentService {
         try {
             return await this._slotmanageMentRepository.fetchDoctorSlots(email);
         } catch (error) {
-            console.error('Error in appointment slot service:', error);
+            console.error(SLOT_MESSAGES.ERROR.SERVICE_LAYER_ERROR, error);
             throw error;
         }
     };
@@ -52,8 +54,10 @@ export class SlotManagementService implements ISlotmanageMentService {
         const { doctor_email, action } = appointmentData;
 
         if (!doctor_email) {
-            const error: Data= new Error('Doctor email is required');
-            error.statusCode = 400;
+            const error: Data = new Error(
+                SLOT_MESSAGES.VALIDATION.DOCTOR_EMAIL_REQUIRED
+            );
+            error.statusCode = HttpStatusCode.NOT_FOUND;
             throw error;
         }
 
@@ -62,17 +66,17 @@ export class SlotManagementService implements ISlotmanageMentService {
 
             if (!selected_dates || selected_dates.length === 0) {
                 const error: Data = new Error(
-                    'Selected dates are required for creating slots'
+                    SLOT_MESSAGES.VALIDATION.SELECTED_DATES_REQUIRED
                 );
-                error.statusCode = 400;
+                error.statusCode =  HttpStatusCode.NOT_FOUND;
                 throw error;
             }
 
             if (!time_slots || time_slots.length === 0) {
                 const error: Data = new Error(
-                    'Time slots are required for creating slots'
+                    SLOT_MESSAGES.VALIDATION.TIME_SLOTS_REQUIRED
                 );
-                error.statusCode = 400;
+                error.statusCode =  HttpStatusCode.NOT_FOUND;
                 throw error;
             }
         } else if (action === 'update') {
@@ -83,16 +87,16 @@ export class SlotManagementService implements ISlotmanageMentService {
                 (!new_time_slots || new_time_slots.length === 0)
             ) {
                 const error: Data = new Error(
-                    'At least one of removed slots or new slots is required for update'
+                    SLOT_MESSAGES.VALIDATION.UPDATE_DATA_REQUIRED
                 );
-                error.statusCode = 400;
+                error.statusCode =  HttpStatusCode.NOT_FOUND;
                 throw error;
             }
         } else {
             const error: Data = new Error(
-                "Invalid action. Must be 'create' or 'update'"
+                SLOT_MESSAGES.VALIDATION.UPDATE_DATA_REQUIRED
             );
-            error.statusCode = 400;
+            error.statusCode =  HttpStatusCode.NOT_FOUND;
             throw error;
         }
     };
@@ -102,10 +106,12 @@ export class SlotManagementService implements ISlotmanageMentService {
     ): Promise<FetchAppointmentSlotsResponse> => {
         try {
             const response =
-                await this._slotmanageMentRepository.fetchAppointmentSlots(request);
+                await this._slotmanageMentRepository.fetchAppointmentSlots(
+                    request
+                );
             return response;
         } catch (error) {
-            console.error('Error in service layer:', error);
+            console.error(SLOT_MESSAGES.ERROR.SERVICE_LAYER_ERROR, error);
             throw error;
         }
     };

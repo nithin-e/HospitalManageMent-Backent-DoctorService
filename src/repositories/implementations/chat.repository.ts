@@ -1,15 +1,14 @@
 import { Types } from 'mongoose';
 import Chat from '../../entities/meetSchema';
 import Message from '../../entities/messageSchema';
-import AppointmentModel from '../../entities/AppointmentModel';
 import {
-    AppointmentUpdateResponse,
     ChatMessageDbResponse,
     ChatMessageStorageRequest,
     ConversationDbFetchResponse,
 } from '../../types/Doctor.interface';
 import { injectable } from 'inversify';
 import { IChatRepository } from '../interfaces/IChat.repository';
+import { CHAT_MESSAGES } from '../../constants/messages.constant';
 
 @injectable()
 export class ChatRepository implements IChatRepository {
@@ -44,7 +43,6 @@ export class ChatRepository implements IChatRepository {
                 existingChat.lastMessageTimestamp = timestamp;
                 await existingChat.save();
                 chatId = existingChat._id.toString();
-                console.log('Chat updated successfully:', existingChat._id);
             } else {
                 const newChat = new Chat({
                     appointmentId: appointmentObjectId,
@@ -55,7 +53,6 @@ export class ChatRepository implements IChatRepository {
                 });
                 const savedChat = await newChat.save();
                 chatId = savedChat._id.toString();
-                console.log('New chat created successfully:', savedChat._id);
             }
 
             const newMessage = new Message({
@@ -71,26 +68,25 @@ export class ChatRepository implements IChatRepository {
             });
 
             const savedMessage = await newMessage.save();
-            console.log('Message saved successfully:', savedMessage._id);
 
             const doctorId = senderType === 'doctor' ? senderId : receverId;
 
             return {
                 success: true,
-                message: 'Message stored successfully',
+                message: CHAT_MESSAGES.STORE.SUCCESS,
                 messageId: (savedMessage._id as string).toString(),
                 conversationId: chatId,
                 doctorId: doctorId,
             };
         } catch (error) {
-            console.error('Error storing message in database:', error);
+            console.error(CHAT_MESSAGES.ERROR.STORAGE_FAILED, error);
 
             return {
                 success: false,
-                message: `Database error: ${
+                message: `${CHAT_MESSAGES.ERROR.DATABASE_ERROR}: ${
                     error instanceof Error
                         ? error.message
-                        : 'Unknown database error'
+                        : CHAT_MESSAGES.ERROR.UNKNOWN_ERROR
                 }`,
                 messageId: '',
                 conversationId: '',
@@ -158,10 +154,12 @@ export class ChatRepository implements IChatRepository {
                 conversations: conversationsWithMessages,
             };
         } catch (error) {
-            console.error('Error in repository layer:', error);
+            console.error(CHAT_MESSAGES.ERROR.REPOSITORY_LAYER_ERROR, error);
             throw new Error(
-                `Repository error: ${
-                    error instanceof Error ? error.message : 'Unknown error'
+                `${CHAT_MESSAGES.ERROR.REPOSITORY_LAYER_ERROR}: ${
+                    error instanceof Error
+                        ? error.message
+                        : CHAT_MESSAGES.ERROR.UNKNOWN_ERROR
                 }`
             );
         }

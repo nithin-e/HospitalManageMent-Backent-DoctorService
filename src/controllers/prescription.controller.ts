@@ -3,6 +3,7 @@ import { TYPES } from '../types/inversify';
 import { IPrescriptionService } from '../services/interfaces/IPrescription.service';
 import { Response, Request } from 'express';
 import { HttpStatusCode } from '../types/Doctor.interface';
+import { PRESCRIPTION_MESSAGES } from '../constants/messages.constant';
 
 @injectable()
 export class PrescriptionController {
@@ -21,7 +22,7 @@ export class PrescriptionController {
 
             res.status(HttpStatusCode.CREATED).json({
                 success: true,
-                message: 'Prescription created successfully',
+                message: PRESCRIPTION_MESSAGES.CREATE.SUCCESS,
                 data: response,
             });
         } catch (error) {
@@ -31,7 +32,7 @@ export class PrescriptionController {
                 message:
                     error instanceof Error
                         ? error.message
-                        : 'Internal server error',
+                        : PRESCRIPTION_MESSAGES.ERROR.INTERNAL_SERVER_ERROR,
             });
         }
     };
@@ -46,17 +47,27 @@ export class PrescriptionController {
 
             res.status(HttpStatusCode.OK).json({
                 success: true,
-                message: 'Prescriptions fetched successfully',
+                message: PRESCRIPTION_MESSAGES.FETCH.SUCCESS,
                 data: response,
             });
         } catch (error) {
             console.error('REST fetchPrescription error:', error);
-            res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+
+            const errorMessage =
+                error instanceof Error
+                    ? error.message
+                    : PRESCRIPTION_MESSAGES.ERROR.INTERNAL_SERVER_ERROR;
+
+            const statusCode =
+                errorMessage === PRESCRIPTION_MESSAGES.FETCH.NOT_FOUND ||
+                errorMessage ===
+                    PRESCRIPTION_MESSAGES.FETCH.APPOINTMENT_NOT_FOUND
+                    ? HttpStatusCode.NOT_FOUND
+                    : HttpStatusCode.INTERNAL_SERVER_ERROR;
+
+            res.status(statusCode).json({
                 success: false,
-                message:
-                    error instanceof Error
-                        ? error.message
-                        : 'Internal server error',
+                message: errorMessage,
             });
         }
     };

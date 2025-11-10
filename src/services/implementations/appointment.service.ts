@@ -21,6 +21,8 @@ import { IAppointmentRepository } from '../../repositories/interfaces/IAppointme
 import { inject, injectable } from 'inversify';
 import { TYPES } from '../../types/inversify';
 import { IPriscriptionRepo } from '../../repositories/interfaces/IPriscription.repository';
+import { MESSAGES } from '../../constants/messages.constant';
+import { FilteringDoctorAppointmentsMapper } from '../../mapers/chatMessage.mapper';
 
 @injectable()
 export class AppontMentService implements IAppointmentService {
@@ -52,7 +54,7 @@ export class AppontMentService implements IAppointmentService {
                 appointmentData
             );
         } catch (error) {
-            console.error('Error in service layer:', error);
+            console.error(MESSAGES.CREATE.FAILED, error);
             throw error;
         }
     };
@@ -69,7 +71,7 @@ export class AppontMentService implements IAppointmentService {
                 limit
             );
         } catch (error) {
-            console.error('Error in fetching single user use case:', error);
+            console.error(MESSAGES.FETCH.FAILED, error);
             throw error;
         }
     };
@@ -89,10 +91,7 @@ export class AppontMentService implements IAppointmentService {
 
             return response;
         } catch (error) {
-            console.error(
-                'Error in fetching all user appointments service:',
-                error
-            );
+            console.error(MESSAGES.FETCH.ALL_FAILED, error);
             throw error;
         }
     };
@@ -102,7 +101,7 @@ export class AppontMentService implements IAppointmentService {
     ): Promise<CancelAppointmentResponse> => {
         try {
             if (!appointmentId) {
-                throw new Error('Appointment ID is required');
+                throw new Error(MESSAGES.VALIDATION.APPOINTMENT_ID_REQUIRED);
             }
 
             const response =
@@ -112,7 +111,7 @@ export class AppontMentService implements IAppointmentService {
 
             return response;
         } catch (error) {
-            console.error('Error in cancelling appointment service:', error);
+            console.error(MESSAGES.CANCEL.FAILED, error);
             throw error;
         }
     };
@@ -127,7 +126,7 @@ export class AppontMentService implements IAppointmentService {
                 );
             return response;
         } catch (error) {
-            console.error('Error in service layer:', error);
+            console.error(MESSAGES.RESCHEDULE.FAILED, error);
             throw error;
         }
     };
@@ -142,11 +141,14 @@ export class AppontMentService implements IAppointmentService {
                 );
             return response;
         } catch (error) {
-            console.error('Error in service layer:', error);
+            console.error(MESSAGES.CANCEL.FAILED, error);
             return {
                 success: false,
-                message: 'Failed to cancel appointment in service layer',
-                error: error instanceof Error ? error.message : 'Unknown error',
+                message: MESSAGES.CANCEL.FAILED,
+                error:
+                    error instanceof Error
+                        ? error.message
+                        : MESSAGES.ERROR.INTERNAL_SERVER_ERROR,
             };
         }
     };
@@ -202,19 +204,14 @@ export class AppontMentService implements IAppointmentService {
                 role: role.trim(),
             };
 
-            console.log('Service Layer - Processing params:', repoParams);
-
             const result =
                 await this._appointmentRepository.filteringDoctorAppoinments(
                     repoParams
                 );
 
-            return result;
+            return FilteringDoctorAppointmentsMapper.toGrpcResponse(result);
         } catch (error) {
-            console.error(
-                'Service Layer Error - filteringDoctorAppoinments:',
-                error
-            );
+            console.error(MESSAGES.FILTER.FAILED, error);
 
             return {
                 appointments: [],
@@ -222,7 +219,7 @@ export class AppontMentService implements IAppointmentService {
                 message:
                     error instanceof Error
                         ? error.message
-                        : 'Internal server error',
+                        : MESSAGES.ERROR.INTERNAL_SERVER_ERROR,
                 totalCount: 0,
                 totalPages: 0,
                 currentPage: params.page || 1,
@@ -242,12 +239,14 @@ export class AppontMentService implements IAppointmentService {
 
             return dbResponse;
         } catch (error) {
-            console.error('Error in service layer:', error);
+            console.error(MESSAGES.UPDATE.AFTER_CONSULTATION_FAILED, error);
 
             return {
                 success: false,
-                error: `Service layer error: ${
-                    error instanceof Error ? error.message : 'Unknown error'
+                error: `${MESSAGES.ERROR.SERVICE_LAYER_ERROR}: ${
+                    error instanceof Error
+                        ? error.message
+                        : MESSAGES.ERROR.INTERNAL_SERVER_ERROR
                 }`,
             };
         }

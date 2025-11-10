@@ -8,6 +8,7 @@ import {
     FetchPrescriptionResponse,
 } from '../../types/Doctor.interface';
 import { IPriscriptionRepo } from '../interfaces/IPriscription.repository';
+import { PRESCRIPTION_MESSAGES } from '../../constants/messages.constant';
 
 @injectable()
 export class PrescriptionRepository implements IPriscriptionRepo {
@@ -15,11 +16,6 @@ export class PrescriptionRepository implements IPriscriptionRepo {
         prescriptionData: PrescriptionData
     ): Promise<PrescriptionResponse> => {
         try {
-            console.log(
-                'This is repository layer so check the Prescription data',
-                prescriptionData
-            );
-
             const newPrescription = new PrescriptionModel({
                 doctorId: prescriptionData.doctorId,
                 patientId: prescriptionData.patientId,
@@ -41,7 +37,7 @@ export class PrescriptionRepository implements IPriscriptionRepo {
                 success: true,
             };
         } catch (error) {
-            console.error('Error saving prescription:', error);
+            console.error(PRESCRIPTION_MESSAGES.ERROR.SAVE_FAILED, error);
             throw error;
         }
     };
@@ -50,14 +46,12 @@ export class PrescriptionRepository implements IPriscriptionRepo {
         prescriptionData: FetchPrescriptionRequest
     ): Promise<FetchPrescriptionResponse> => {
         try {
-            console.log('check da kuttaa it is getting', prescriptionData);
-
             const prescription = await PrescriptionModel.findOne({
                 appointmentId: prescriptionData.appointmentId,
             });
 
             if (!prescription) {
-                throw new Error('Prescription not found');
+                throw new Error(PRESCRIPTION_MESSAGES.FETCH.NOT_FOUND);
             }
 
             const appointment = await AppointmentModel.findById(
@@ -65,7 +59,9 @@ export class PrescriptionRepository implements IPriscriptionRepo {
             );
 
             if (!appointment) {
-                throw new Error('Appointment not found');
+                throw new Error(
+                    PRESCRIPTION_MESSAGES.FETCH.APPOINTMENT_NOT_FOUND
+                );
             }
 
             const response: FetchPrescriptionResponse = {
@@ -76,10 +72,9 @@ export class PrescriptionRepository implements IPriscriptionRepo {
                 doctorEmail: appointment.doctorEmail ?? null,
             };
 
-            console.log('Fetched prescription response:', response);
             return response;
         } catch (error) {
-            console.error('Error fetching prescription:', error);
+            console.error(PRESCRIPTION_MESSAGES.FETCH.FAILED, error);
             throw error;
         }
     };

@@ -1,8 +1,12 @@
-import { AppointmentSlotsData, HttpStatusCode } from '../types/Doctor.interface';
+import {
+    AppointmentSlotsData,
+    HttpStatusCode,
+} from '../types/Doctor.interface';
 import { inject, injectable } from 'inversify';
 import { TYPES } from '../types/inversify';
 import { Response, Request } from 'express';
 import { ISlotmanageMentService } from '../services/interfaces/ISlot-mangement.service';
+import { SLOT_MESSAGES } from '../constants/messages.constant';
 
 @injectable()
 export class SlotManagementController {
@@ -25,17 +29,16 @@ export class SlotManagementController {
 
             res.status(HttpStatusCode.OK).json({
                 success: true,
-                message: 'Appointment slots fetched successfully',
+                message: SLOT_MESSAGES.FETCH.SUCCESS,
                 data: slots,
             });
         } catch (error) {
-            console.error('REST fetchAppointmentSlots error:', error);
             res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
                 message:
                     error instanceof Error
                         ? error.message
-                        : 'Internal server error while fetching appointment slots',
+                        : SLOT_MESSAGES.ERROR.INTERNAL_SERVER_ERROR,
             });
         }
     };
@@ -52,7 +55,8 @@ export class SlotManagementController {
             if (!appointmentSettings) {
                 res.status(HttpStatusCode.BAD_REQUEST).json({
                     success: false,
-                    message: 'Appointment settings are required',
+                    message:
+                        SLOT_MESSAGES.VALIDATION.APPOINTMENT_SETTINGS_REQUIRED,
                 });
                 return;
             }
@@ -60,7 +64,7 @@ export class SlotManagementController {
             if (!appointmentSettings.doctorEmail) {
                 res.status(HttpStatusCode.BAD_REQUEST).json({
                     success: false,
-                    message: 'Doctor email is required',
+                    message: SLOT_MESSAGES.VALIDATION.DOCTOR_EMAIL_REQUIRED,
                 });
                 return;
             }
@@ -68,7 +72,7 @@ export class SlotManagementController {
             if (!appointmentSettings.action) {
                 res.status(HttpStatusCode.BAD_REQUEST).json({
                     success: false,
-                    message: 'Action (create/update) is required',
+                    message: SLOT_MESSAGES.VALIDATION.ACTION_REQUIRED,
                 });
                 return;
             }
@@ -108,7 +112,7 @@ export class SlotManagementController {
             } else {
                 res.status(HttpStatusCode.BAD_REQUEST).json({
                     success: false,
-                    message: "Invalid action. Must be 'create' or 'update'",
+                    message: SLOT_MESSAGES.VALIDATION.INVALID_ACTION,
                 });
                 return;
             }
@@ -125,7 +129,7 @@ export class SlotManagementController {
                 result: dbResponse,
             });
         } catch (error) {
-            console.error('Error in storeAppointmentSlots:', error);
+            console.error('Error :', error);
         }
     };
 
@@ -139,7 +143,7 @@ export class SlotManagementController {
 
             res.status(HttpStatusCode.OK).json({
                 success: true,
-                message: 'Doctor slots fetched successfully',
+                message: SLOT_MESSAGES.FETCH.DOCTOR_SLOTS_SUCCESS,
                 data: slots,
             });
         } catch (error) {
@@ -149,7 +153,7 @@ export class SlotManagementController {
                 message:
                     error instanceof Error
                         ? error.message
-                        : 'Internal server error while fetching doctor slots',
+                        : SLOT_MESSAGES.ERROR.INTERNAL_SERVER_ERROR,
             });
         }
     };

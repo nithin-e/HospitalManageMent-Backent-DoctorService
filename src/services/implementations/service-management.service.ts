@@ -2,6 +2,7 @@ import { inject, injectable } from 'inversify';
 import { IServiceManageMentService } from '../interfaces/IService-management.service';
 import { TYPES } from '../../types/inversify';
 import { IService } from '../../entities/serviceModel';
+import { SERVICE_MESSAGES } from '../../constants/messages.constant';
 
 @injectable()
 export class ServiceManageMentService implements IServiceManageMentService {
@@ -22,7 +23,7 @@ export class ServiceManageMentService implements IServiceManageMentService {
 
             return response;
         } catch (error) {
-            console.error('Error creating service:', error);
+            console.error(SERVICE_MESSAGES.ERROR.SERVICE_LAYER_ERROR, error);
             return false;
         }
     };
@@ -32,7 +33,7 @@ export class ServiceManageMentService implements IServiceManageMentService {
             const response = await this._serviceManageMent.fetchService();
             return response;
         } catch (error) {
-            console.error('Error fetching service:', error);
+            console.error(SERVICE_MESSAGES.ERROR.SERVICE_LAYER_ERROR, error);
             throw error;
         }
     };
@@ -45,7 +46,7 @@ export class ServiceManageMentService implements IServiceManageMentService {
 
             return response;
         } catch (error) {
-            console.error('Error creating service:', error);
+            console.error(SERVICE_MESSAGES.ERROR.SERVICE_LAYER_ERROR, error);
             return false;
         }
     };
@@ -64,7 +65,7 @@ export class ServiceManageMentService implements IServiceManageMentService {
 
             return response;
         } catch (error) {
-            console.error('Error creating service:', error);
+            console.error(SERVICE_MESSAGES.ERROR.SERVICE_LAYER_ERROR, error);
             return false;
         }
     };

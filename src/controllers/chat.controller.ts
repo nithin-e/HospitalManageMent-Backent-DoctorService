@@ -1,9 +1,13 @@
-import { ChatMessageGrpcRequest, HttpStatusCode } from '../types/Doctor.interface';
+import {
+    ChatMessageGrpcRequest,
+    HttpStatusCode,
+} from '../types/Doctor.interface';
 import { ChatMessageMapper } from '../mapers/chatMessage.mapper';
 import { inject, injectable } from 'inversify';
 import { TYPES } from '../types/inversify';
 import { IChatService } from '../services/interfaces/IChat.service';
 import { Response, Request } from 'express';
+import { CHAT_MESSAGES } from '../constants/messages.constant';
 
 @injectable()
 export class ChatController {
@@ -15,12 +19,11 @@ export class ChatController {
     async storeMessageInDb(messageData: ChatMessageGrpcRequest): Promise<void> {
         try {
             const mappedData = ChatMessageMapper.toStorageRequest(messageData);
-
             const serviceResponse = await this._chatService.storeMessage(
                 mappedData
             );
         } catch (error) {
-            console.error('❌ Error storing message in DB:', error);
+            console.error(CHAT_MESSAGES.STORE.FAILED, error);
             throw error;
         }
     }
@@ -32,7 +35,7 @@ export class ChatController {
             if (!userId || !doctorId) {
                 res.status(HttpStatusCode.BAD_REQUEST).json({
                     success: false,
-                    message: 'Both userId and doctorId are required',
+                    message: CHAT_MESSAGES.VALIDATION.BOTH_IDS_REQUIRED,
                 });
                 return;
             }
@@ -45,8 +48,7 @@ export class ChatController {
             res.status(HttpStatusCode.OK).json({
                 success: dbResponse.success,
                 conversations: dbResponse.conversations || [],
-                message:
-                    dbResponse.message || 'Conversations fetched successfully',
+                message: dbResponse.message || CHAT_MESSAGES.FETCH.SUCCESS,
             });
         } catch (error) {
             console.error('REST fetchConversations error:', error);
@@ -56,7 +58,7 @@ export class ChatController {
                 message:
                     error instanceof Error
                         ? error.message
-                        : 'Internal server error',
+                        : CHAT_MESSAGES.ERROR.INTERNAL_SERVER_ERROR,
             });
         }
     };
