@@ -255,12 +255,12 @@ export class SloteManagementRepository implements ISlotManagementRepository {
                     );
 
                     updatedCount = insertResult.length;
-                } catch (error: any) {
+                } catch (error) {
                     console.error(SLOT_MESSAGES.ERROR.NEW_SLOTS_FAILED, error);
 
-                    if (error.insertedDocs) {
-                        updatedCount = error.insertedDocs.length;
-                    }
+                    // if (error.insertedDocs) {
+                    //     updatedCount = error.insertedDocs.length;
+                    // }
                 }
             }
 

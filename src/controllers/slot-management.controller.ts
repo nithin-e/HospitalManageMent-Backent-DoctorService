@@ -96,7 +96,7 @@ export class SlotManagementController {
                     action: 'create',
                     date_range: appointmentSettings.dateRange,
                     selected_dates: appointmentSettings.selectedDates,
-                    time_slots: timeSlots.map((slot: any) => ({
+                    time_slots: timeSlots.map((slot:any) => ({
                         date: slot.date,
                         slots: slot.slots,
                     })),
@@ -147,7 +147,6 @@ export class SlotManagementController {
                 data: slots,
             });
         } catch (error) {
-            console.error('REST fetchDoctorSlots error:', error);
             res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
                 message:

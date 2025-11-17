@@ -1,3 +1,4 @@
+import { Channel, Connection, ConsumeMessage, ChannelModel } from 'amqplib';
 import { container } from '../config/inversify.config';
 import { createRabbit } from '../config/rabbitmq.config';
 import { AppointmentController } from '../controllers/appointment.controller';
@@ -12,8 +13,8 @@ export const appointmentController = container.get<AppointmentController>(
 );
 
 export class DoctorConsumer {
-    private ch: any;
-    private conn: any;
+    private ch: Channel | null = null;
+    private conn: Connection | ChannelModel | null = null;
     private isRunning: boolean = false;
 
     constructor(
@@ -44,7 +45,7 @@ export class DoctorConsumer {
 
             await ch.consume(
                 chatQueue,
-                async (msg) => {
+                async (msg: ConsumeMessage | null) => {
                     if (!msg) return;
                     try {
                         console.log(
@@ -69,7 +70,7 @@ export class DoctorConsumer {
 
             await ch.consume(
                 rescheduleQueue,
-                async (msg) => {
+                async (msg: ConsumeMessage | null) => {
                     if (!msg) return;
                     try {
                         console.log(
@@ -130,7 +131,7 @@ export class DoctorConsumer {
                 console.log('✅ RabbitMQ channel closed');
             }
 
-            if (this.conn) {
+            if (this.conn && 'close' in this.conn) {
                 await this.conn.close();
                 console.log('✅ RabbitMQ connection closed');
             }

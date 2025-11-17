@@ -121,7 +121,7 @@ export class ChatRepository implements IChatRepository {
 
                     return {
                         conversationId: conversation._id.toString(),
-                        participants: conversation.participants.map((p: any) =>
+                        participants: conversation.participants.map((p: ) =>
                             p.toString()
                         ),
                         appointmentId: conversation.appointmentId.toString(),
